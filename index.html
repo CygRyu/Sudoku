@@ -123,6 +123,37 @@
         .dropdown:hover .dropdown-content {
             display: block;
         }
+        
+        /* Save notification */
+        #save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        /* Responsive grid size */
+        #sudoku-board {
+            transition: transform 0.3s ease;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .grid-size-display {
+            width: 2.5rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-batman-gray dark:text-white bg-gotham-city p-4 flex flex-col items-center">
@@ -136,16 +167,40 @@
                 </svg>
             </div>
             <h1 class="text-2xl sm:text-3xl font-batman tracking-wider text-batman-black">SUDOKU</h1>
-            <button id="stats-btn" class="absolute right-4 bg-gray-900 text-white p-2 rounded-full hover:bg-gray-800 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                </svg>
-            </button>
+            <div class="absolute right-4 flex space-x-2">
+                <button id="settings-btn" class="bg-gray-900 text-white p-2 rounded-full hover:bg-gray-800 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button id="stats-btn" class="bg-gray-900 text-white p-2 rounded-full hover:bg-gray-800 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <!-- Game Status Message -->
         <div id="status" class="bg-gray-200 dark:bg-gray-800 text-center py-2 font-bold text-gray-800 dark:text-batman-yellow">
             Ready to solve Gotham's puzzles?
+        </div>
+        
+        <!-- Grid Size Controls -->
+        <div class="bg-gray-100 dark:bg-gray-900 py-2 px-4 flex justify-center">
+            <div class="zoom-controls">
+                <button id="zoom-out" class="bg-gray-300 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <span id="grid-size-display" class="grid-size-display">100%</span>
+                <button id="zoom-in" class="bg-gray-300 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <!-- Sudoku Grid -->
@@ -211,17 +266,17 @@
         
         <!-- Share/Import Buttons -->
         <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900 flex flex-wrap justify-between gap-2">
+            <button id="saved-games-btn" class="bg-purple-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-purple-700 transition flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                SAVED GAMES
+            </button>
             <button id="share-btn" class="bg-blue-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-blue-700 transition flex items-center justify-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
                 SHARE PUZZLE
-            </button>
-            <button id="import-btn" class="bg-green-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-green-700 transition flex items-center justify-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                IMPORT PUZZLE
             </button>
         </div>
         
@@ -287,6 +342,12 @@
                 </button>
             </div>
             
+            <!-- Player Name Input -->
+            <div class="mb-4">
+                <label for="player-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Detective Name</label>
+                <input type="text" id="player-name" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-base" placeholder="Enter your detective name" />
+            </div>
+            
             <!-- Statistics Panel -->
             <div class="mb-6">
                 <h4 class="font-bold mb-2 dark:text-batman-yellow">Statistics</h4>
@@ -301,7 +362,90 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="flex justify-end">
+                <button id="save-stats-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded shadow hover:bg-yellow-400 transition">Save</button>
+            </div>
         </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Game Settings</h3>
+                <button id="close-settings-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Auto-save Settings -->
+            <div class="mb-4">
+                <h4 class="font-bold mb-2 dark:text-batman-yellow">Save Settings</h4>
+                <label class="flex items-center cursor-pointer text-sm mb-2">
+                    <input type="checkbox" id="auto-save-toggle" class="mr-2 h-4 w-4" checked>
+                    <span>Auto-save game every 30 seconds</span>
+                </label>
+                
+                <div class="flex space-x-2 mt-2">
+                    <button id="manual-save-btn" class="bg-green-600 text-white px-3 py-1 rounded shadow hover:bg-green-700 transition text-sm">
+                        Save Game Now
+                    </button>
+                    <button id="export-game-btn" class="bg-blue-600 text-white px-3 py-1 rounded shadow hover:bg-blue-700 transition text-sm">
+                        Export Game Data
+                    </button>
+                    <button id="import-game-btn" class="bg-purple-600 text-white px-3 py-1 rounded shadow hover:bg-purple-700 transition text-sm">
+                        Import Game Data
+                    </button>
+                </div>
+            </div>
+            
+            <hr class="border-gray-300 dark:border-gray-600 my-4">
+            
+            <!-- Data Management -->
+            <div class="mb-4">
+                <h4 class="font-bold mb-2 dark:text-batman-yellow">Data Management</h4>
+                <div class="flex space-x-2">
+                    <button id="clear-data-btn" class="bg-red-600 text-white px-3 py-1 rounded shadow hover:bg-red-700 transition text-sm">
+                        Clear All Data
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will delete all saved games and statistics</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Saved Games Modal -->
+    <div id="saved-games-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Saved Games</h3>
+                <button id="close-saved-games-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <div id="saved-games-container" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Saved games will be added here dynamically -->
+                    <p id="no-saved-games" class="text-center text-gray-500 dark:text-gray-400 py-4">No saved games found</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-between mt-4">
+                <input type="text" id="save-game-name" class="flex-1 p-2 border rounded-l bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-base" placeholder="Name your save (optional)" />
+                <button id="save-game-btn" class="bg-green-600 text-white px-3 py-2 rounded-r shadow hover:bg-green-700 transition">Save Current Game</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save Notification -->
+    <div id="save-notification" class="dark:bg-gray-800 bg-gray-700 text-white px-4 py-2 rounded shadow-lg">
+        Game auto-saved
     </div>
 
     <script>
@@ -329,14 +473,20 @@
         let isPencilMode = false;
         let highlightRowColBox = true;
         let highlightSameNumbers = true;
+        let gridScale = 100; // Default grid scale in percentage
+        
+        // Auto-save variables
+        let autoSaveEnabled = true;
+        let autoSaveInterval = null;
         
         // Statistics 
         let stats = {
             puzzlesSolved: 0,
             noHintSolves: 0,
-            currentGameUsedHint: false
+            currentGameUsedHint: false,
+            playerName: 'Detective'
         };
-
+        
         // Initialize the game board
         function initializeBoard() {
             const sudokuBoard = document.getElementById('sudoku-board');
@@ -784,6 +934,9 @@
             
             // Show message
             showStatus("New case file opened, Detective.", false);
+            
+            // Save game state
+            saveCurrentGame();
         }
         
         // Check the current solution
@@ -818,7 +971,7 @@
                 updateStatisticsDisplay();
                 
                 // Save statistics
-                saveGameState();
+                saveStats();
             }
         }
         
@@ -865,12 +1018,16 @@
             stats.currentGameUsedHint = true;
             
             showStatus("Oracle has provided intel. Hints remaining: " + hintsRemaining, false);
+            
+            // Save game state
+            saveCurrentGame();
         }
         
         // Toggle pencil mark for a cell
         function togglePencilMark(row, col, num) {
             pencilMarks[row][col][num-1] = !pencilMarks[row][col][num-1];
             updateBoard();
+            saveCurrentGame();
         }
         
         // Set a cell's value (normal mode)
@@ -880,7 +1037,43 @@
             
             // Set the cell value
             board[row][col] = value;
+            
+            // ENHANCEMENT: Auto-remove related pencil marks with the same number
+            clearRelatedPencilMarks(row, col, value);
+            
             updateBoard();
+            saveCurrentGame();
+        }
+        
+        // ENHANCEMENT: Clear related pencil marks with the same number
+        function clearRelatedPencilMarks(row, col, value) {
+            const valueIndex = value - 1;
+            
+            // Clear row pencil marks
+            for (let c = 0; c < 9; c++) {
+                if (c !== col && board[row][c] === 0) {
+                    pencilMarks[row][c][valueIndex] = false;
+                }
+            }
+            
+            // Clear column pencil marks
+            for (let r = 0; r < 9; r++) {
+                if (r !== row && board[r][col] === 0) {
+                    pencilMarks[r][col][valueIndex] = false;
+                }
+            }
+            
+            // Clear box pencil marks
+            const boxRowStart = Math.floor(row / 3) * 3;
+            const boxColStart = Math.floor(col / 3) * 3;
+            
+            for (let r = boxRowStart; r < boxRowStart + 3; r++) {
+                for (let c = boxColStart; c < boxColStart + 3; c++) {
+                    if ((r !== row || c !== col) && board[r][c] === 0) {
+                        pencilMarks[r][c][valueIndex] = false;
+                    }
+                }
+            }
         }
         
         // Update the hint button text
@@ -913,6 +1106,10 @@
         function updateStatisticsDisplay() {
             document.getElementById('puzzles-solved').textContent = stats.puzzlesSolved;
             document.getElementById('no-hint-solves').textContent = stats.noHintSolves;
+            
+            // ENHANCEMENT: Update player name field
+            const playerNameInput = document.getElementById('player-name');
+            playerNameInput.value = stats.playerName || 'Detective';
         }
         
         // Show a status message
@@ -943,6 +1140,407 @@
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
+        }
+        
+        // ENHANCEMENT: Save current game state to localStorage
+        function saveCurrentGame() {
+            // Only save if auto-save is enabled
+            if (!autoSaveEnabled) return;
+            
+            // Current game state
+            const currentGame = {
+                board: board,
+                initialCells: initialCells,
+                solution: solution,
+                hintsRemaining: hintsRemaining,
+                pencilMarks: pencilMarks,
+                timestamp: new Date().toISOString(),
+                gridScale: gridScale
+            };
+            
+            try {
+                localStorage.setItem('currentGame', JSON.stringify(currentGame));
+                
+                // Show save notification (for manual saves)
+                if (!autoSaveInterval) {
+                    showSaveNotification('Game saved');
+                }
+            } catch (e) {
+                console.error('Failed to save game:', e);
+            }
+        }
+        
+        // ENHANCEMENT: Load current game state from localStorage
+        function loadCurrentGame() {
+            try {
+                const savedGame = localStorage.getItem('currentGame');
+                if (savedGame) {
+                    const gameData = JSON.parse(savedGame);
+                    
+                    // Load game state
+                    board = gameData.board;
+                    initialCells = gameData.initialCells;
+                    solution = gameData.solution;
+                    hintsRemaining = gameData.hintsRemaining;
+                    
+                    // Handle pencil marks
+                    if (gameData.pencilMarks) {
+                        pencilMarks = gameData.pencilMarks;
+                    }
+                    
+                    // Handle grid scale
+                    if (gameData.gridScale) {
+                        setGridScale(gameData.gridScale);
+                    }
+                    
+                    // Update UI
+                    updateBoard();
+                    updateHintButton();
+                    
+                    return true;
+                }
+            } catch (e) {
+                console.error('Failed to load game:', e);
+            }
+            
+            return false;
+        }
+        
+        // ENHANCEMENT: Save game with name
+        function saveNamedGame(name) {
+            const gameName = name || `Game ${new Date().toLocaleString()}`;
+            
+            // Prepare game state
+            const gameState = {
+                name: gameName,
+                board: board,
+                initialCells: initialCells,
+                solution: solution,
+                hintsRemaining: hintsRemaining,
+                pencilMarks: pencilMarks,
+                timestamp: new Date().toISOString(),
+                gridScale: gridScale
+            };
+            
+            try {
+                // Get existing saved games
+                let savedGames = [];
+                const savedGamesData = localStorage.getItem('savedGames');
+                
+                if (savedGamesData) {
+                    savedGames = JSON.parse(savedGamesData);
+                }
+                
+                // Add new game
+                savedGames.push(gameState);
+                
+                // Save back to localStorage
+                localStorage.setItem('savedGames', JSON.stringify(savedGames));
+                
+                // Show notification
+                showSaveNotification('Game saved as: ' + gameName);
+                
+                // Update saved games list
+                updateSavedGamesList();
+                
+                return true;
+            } catch (e) {
+                console.error('Failed to save named game:', e);
+                return false;
+            }
+        }
+        
+        // ENHANCEMENT: Load a saved game
+        function loadSavedGame(index) {
+            try {
+                const savedGamesData = localStorage.getItem('savedGames');
+                
+                if (savedGamesData) {
+                    const savedGames = JSON.parse(savedGamesData);
+                    
+                    if (savedGames[index]) {
+                        const gameData = savedGames[index];
+                        
+                        // Load game state
+                        board = gameData.board;
+                        initialCells = gameData.initialCells;
+                        solution = gameData.solution;
+                        hintsRemaining = gameData.hintsRemaining;
+                        pencilMarks = gameData.pencilMarks || Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+                        
+                        // Handle grid scale
+                        if (gameData.gridScale) {
+                            setGridScale(gameData.gridScale);
+                        }
+                        
+                        // Update UI
+                        updateBoard();
+                        updateHintButton();
+                        
+                        // Close modal
+                        document.getElementById('saved-games-modal').style.display = 'none';
+                        
+                        // Show message
+                        showStatus(`Loaded game: ${gameData.name}`, false);
+                        
+                        // Save as current game
+                        saveCurrentGame();
+                        
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load saved game:', e);
+            }
+            
+            return false;
+        }
+        
+        // ENHANCEMENT: Delete a saved game
+        function deleteSavedGame(index) {
+            try {
+                const savedGamesData = localStorage.getItem('savedGames');
+                
+                if (savedGamesData) {
+                    const savedGames = JSON.parse(savedGamesData);
+                    
+                    if (savedGames[index]) {
+                        // Remove the game
+                        savedGames.splice(index, 1);
+                        
+                        // Save back to localStorage
+                        localStorage.setItem('savedGames', JSON.stringify(savedGames));
+                        
+                        // Update UI
+                        updateSavedGamesList();
+                        
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to delete saved game:', e);
+            }
+            
+            return false;
+        }
+        
+        // ENHANCEMENT: Update saved games list in the modal
+        function updateSavedGamesList() {
+            const container = document.getElementById('saved-games-container');
+            const noSavedGamesMsg = document.getElementById('no-saved-games');
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            try {
+                const savedGamesData = localStorage.getItem('savedGames');
+                
+                if (savedGamesData) {
+                    const savedGames = JSON.parse(savedGamesData);
+                    
+                    if (savedGames.length > 0) {
+                        noSavedGamesMsg.style.display = 'none';
+                        
+                        // Add each saved game
+                        savedGames.forEach((game, index) => {
+                            const gameItem = document.createElement('div');
+                            gameItem.classList.add('bg-white', 'dark:bg-gray-700', 'p-3', 'rounded', 'flex', 'justify-between', 'items-center');
+                            
+                            const date = new Date(game.timestamp);
+                            const dateFormatted = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                            
+                            const gameInfo = document.createElement('div');
+                            gameInfo.innerHTML = `
+                                <div class="font-bold dark:text-white">${game.name}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">${dateFormatted}</div>
+                            `;
+                            
+                            const buttonsContainer = document.createElement('div');
+                            buttonsContainer.classList.add('flex', 'gap-2');
+                            
+                            const loadBtn = document.createElement('button');
+                            loadBtn.classList.add('bg-green-600', 'text-white', 'px-2', 'py-1', 'rounded', 'text-xs');
+                            loadBtn.textContent = 'Load';
+                            loadBtn.addEventListener('click', () => loadSavedGame(index));
+                            
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.classList.add('bg-red-600', 'text-white', 'px-2', 'py-1', 'rounded', 'text-xs');
+                            deleteBtn.textContent = 'Delete';
+                            deleteBtn.addEventListener('click', () => {
+                                if (confirm('Are you sure you want to delete this saved game?')) {
+                                    deleteSavedGame(index);
+                                }
+                            });
+                            
+                            buttonsContainer.appendChild(loadBtn);
+                            buttonsContainer.appendChild(deleteBtn);
+                            
+                            gameItem.appendChild(gameInfo);
+                            gameItem.appendChild(buttonsContainer);
+                            
+                            container.appendChild(gameItem);
+                        });
+                    } else {
+                        noSavedGamesMsg.style.display = 'block';
+                    }
+                } else {
+                    noSavedGamesMsg.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Failed to update saved games list:', e);
+                noSavedGamesMsg.style.display = 'block';
+            }
+        }
+        
+        // ENHANCEMENT: Save statistics to localStorage
+        function saveStats() {
+            try {
+                localStorage.setItem('sudokuStats', JSON.stringify(stats));
+            } catch (e) {
+                console.error('Failed to save statistics:', e);
+            }
+        }
+        
+        // ENHANCEMENT: Load statistics from localStorage
+        function loadStats() {
+            try {
+                const savedStats = localStorage.getItem('sudokuStats');
+                if (savedStats) {
+                    const loadedStats = JSON.parse(savedStats);
+                    
+                    // Merge stats
+                    stats = {
+                        ...stats, // Default values
+                        ...loadedStats // Loaded values
+                    };
+                    
+                    updateStatisticsDisplay();
+                    return true;
+                }
+            } catch (e) {
+                console.error('Failed to load statistics:', e);
+            }
+            
+            return false;
+        }
+        
+        // ENHANCEMENT: Clear all stored data
+        function clearAllData() {
+            try {
+                localStorage.removeItem('currentGame');
+                localStorage.removeItem('savedGames');
+                localStorage.removeItem('sudokuStats');
+                localStorage.removeItem('sudokuSettings');
+                
+                showStatus('All data cleared successfully', false);
+                
+                // Reset stats
+                stats = {
+                    puzzlesSolved: 0,
+                    noHintSolves: 0,
+                    currentGameUsedHint: false,
+                    playerName: 'Detective'
+                };
+                
+                updateStatisticsDisplay();
+                
+                return true;
+            } catch (e) {
+                console.error('Failed to clear data:', e);
+                return false;
+            }
+        }
+        
+        // ENHANCEMENT: Save settings
+        function saveSettings() {
+            try {
+                const settings = {
+                    autoSaveEnabled,
+                    gridScale
+                };
+                
+                localStorage.setItem('sudokuSettings', JSON.stringify(settings));
+            } catch (e) {
+                console.error('Failed to save settings:', e);
+            }
+        }
+        
+        // ENHANCEMENT: Load settings
+        function loadSettings() {
+            try {
+                const savedSettings = localStorage.getItem('sudokuSettings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    
+                    if (settings.autoSaveEnabled !== undefined) {
+                        autoSaveEnabled = settings.autoSaveEnabled;
+                        document.getElementById('auto-save-toggle').checked = autoSaveEnabled;
+                    }
+                    
+                    if (settings.gridScale !== undefined) {
+                        setGridScale(settings.gridScale);
+                    }
+                    
+                    return true;
+                }
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
+            
+            return false;
+        }
+        
+        // ENHANCEMENT: Start auto-save
+        function startAutoSave() {
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+            
+            if (autoSaveEnabled) {
+                autoSaveInterval = setInterval(() => {
+                    saveCurrentGame();
+                    showSaveNotification('Game auto-saved');
+                }, 30000); // 30 seconds
+            }
+        }
+        
+        // ENHANCEMENT: Stop auto-save
+        function stopAutoSave() {
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+        }
+        
+        // ENHANCEMENT: Show save notification
+        function showSaveNotification(message) {
+            const notification = document.getElementById('save-notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+        
+        // ENHANCEMENT: Set grid scale
+        function setGridScale(scale) {
+            // Limit scale between 60% and 150%
+            gridScale = Math.max(60, Math.min(150, scale));
+            
+            // Update board
+            const board = document.getElementById('sudoku-board');
+            board.style.transform = `scale(${gridScale / 100})`;
+            
+            // Add margin to account for scaling
+            const scaleAdjustment = (gridScale - 100) / 2;
+            board.style.margin = `${scaleAdjustment}px ${scaleAdjustment}px`;
+            
+            // Update display
+            document.getElementById('grid-size-display').textContent = `${gridScale}%`;
+            
+            // Save settings
+            saveSettings();
         }
         
         // Encode the current puzzle to base64
@@ -1002,6 +1600,9 @@
                 // Clear highlights
                 clearHighlights();
                 
+                // Save imported game
+                saveCurrentGame();
+                
                 return true;
             } catch (e) {
                 console.error("Error decoding puzzle:", e);
@@ -1009,18 +1610,14 @@
             }
         }
         
-        // Save game state
-        function saveGameState() {
-            // Save the encoded state to the share code input
-            // (Since localStorage is not available, we'll use the share modal)
-            const encodedPuzzle = encodePuzzle();
-            const shareCodeInput = document.getElementById('share-code');
-            shareCodeInput.value = encodedPuzzle;
-        }
-        
         // Share the current puzzle
         function sharePuzzle() {
-            saveGameState();
+            // Generate encoded puzzle
+            const encodedPuzzle = encodePuzzle();
+            
+            // Set share code
+            const shareCodeInput = document.getElementById('share-code');
+            shareCodeInput.value = encodedPuzzle;
             
             // Show the share modal
             document.getElementById('share-modal').style.display = 'flex';
@@ -1065,6 +1662,9 @@
                 // Close the modal and show success message
                 document.getElementById('import-modal').style.display = 'none';
                 showStatus("Puzzle imported successfully.", false);
+                
+                // Save as current game
+                saveCurrentGame();
             } else {
                 // Show error message
                 importError.textContent = "Invalid puzzle code. Please try again.";
@@ -1076,6 +1676,21 @@
         function showStatistics() {
             updateStatisticsDisplay();
             document.getElementById('stats-modal').style.display = 'flex';
+        }
+        
+        // ENHANCEMENT: Show settings modal
+        function showSettings() {
+            // Update UI to match current settings
+            document.getElementById('auto-save-toggle').checked = autoSaveEnabled;
+            
+            // Show modal
+            document.getElementById('settings-modal').style.display = 'flex';
+        }
+        
+        // ENHANCEMENT: Show saved games modal
+        function showSavedGames() {
+            updateSavedGamesList();
+            document.getElementById('saved-games-modal').style.display = 'flex';
         }
         
         // Set up event listeners
@@ -1132,6 +1747,7 @@
                 }
                 
                 updateBoard();
+                saveCurrentGame();
             });
             
             // Mode toggle buttons
@@ -1192,14 +1808,17 @@
             // Share button
             document.getElementById('share-btn').addEventListener('click', sharePuzzle);
             
-            // Import button
-            document.getElementById('import-btn').addEventListener('click', importPuzzle);
-            
             // Copy button
             document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
             
             // Statistics button
             document.getElementById('stats-btn').addEventListener('click', showStatistics);
+            
+            // Settings button
+            document.getElementById('settings-btn').addEventListener('click', showSettings);
+            
+            // Saved games button
+            document.getElementById('saved-games-btn').addEventListener('click', showSavedGames);
             
             // Close share modal
             document.getElementById('close-share-modal').addEventListener('click', () => {
@@ -1217,14 +1836,96 @@
                 document.getElementById('stats-modal').style.display = 'none';
             });
             
+            // Save stats button
+            document.getElementById('save-stats-btn').addEventListener('click', () => {
+                // Update player name
+                stats.playerName = document.getElementById('player-name').value || 'Detective';
+                
+                // Save stats
+                saveStats();
+                
+                // Close modal
+                document.getElementById('stats-modal').style.display = 'none';
+                
+                // Show confirmation
+                showStatus('Detective profile updated', false);
+            });
+            
+            // Close settings modal
+            document.getElementById('close-settings-modal').addEventListener('click', () => {
+                document.getElementById('settings-modal').style.display = 'none';
+            });
+            
+            // Auto-save toggle
+            document.getElementById('auto-save-toggle').addEventListener('change', (e) => {
+                autoSaveEnabled = e.target.checked;
+                
+                if (autoSaveEnabled) {
+                    startAutoSave();
+                } else {
+                    stopAutoSave();
+                }
+                
+                saveSettings();
+            });
+            
+            // Manual save button
+            document.getElementById('manual-save-btn').addEventListener('click', () => {
+                saveCurrentGame();
+                showStatus('Game saved manually', false);
+            });
+            
+            // Export game button
+            document.getElementById('export-game-btn').addEventListener('click', () => {
+                sharePuzzle();
+                document.getElementById('settings-modal').style.display = 'none';
+            });
+            
+            // Import game button
+            document.getElementById('import-game-btn').addEventListener('click', () => {
+                importPuzzle();
+                document.getElementById('settings-modal').style.display = 'none';
+            });
+            
+            // Clear data button
+            document.getElementById('clear-data-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete all saved games and statistics? This cannot be undone.')) {
+                    clearAllData();
+                    document.getElementById('settings-modal').style.display = 'none';
+                }
+            });
+            
+            // Close saved games modal
+            document.getElementById('close-saved-games-modal').addEventListener('click', () => {
+                document.getElementById('saved-games-modal').style.display = 'none';
+            });
+            
+            // Save game button
+            document.getElementById('save-game-btn').addEventListener('click', () => {
+                const gameName = document.getElementById('save-game-name').value || `Game ${new Date().toLocaleString()}`;
+                saveNamedGame(gameName);
+                updateSavedGamesList();
+            });
+            
             // Import submit button
             document.getElementById('import-submit-btn').addEventListener('click', submitImportedPuzzle);
+            
+            // ENHANCEMENT: Zoom controls
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                setGridScale(gridScale + 10);
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                setGridScale(gridScale - 10);
+            });
             
             // Close modals when clicking outside
             window.addEventListener('click', (e) => {
                 const shareModal = document.getElementById('share-modal');
                 const importModal = document.getElementById('import-modal');
                 const statsModal = document.getElementById('stats-modal');
+                const settingsModal = document.getElementById('settings-modal');
+                const savedGamesModal = document.getElementById('saved-games-modal');
                 
                 if (e.target === shareModal) {
                     shareModal.style.display = 'none';
@@ -1237,6 +1938,14 @@
                 
                 if (e.target === statsModal) {
                     statsModal.style.display = 'none';
+                }
+                
+                if (e.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+                
+                if (e.target === savedGamesModal) {
+                    savedGamesModal.style.display = 'none';
                 }
             });
             
@@ -1263,6 +1972,13 @@
                         board[row][col] = 0;
                     }
                     updateBoard();
+                    saveCurrentGame();
+                } else if (e.key === '+' || e.key === '=') {
+                    // Zoom in
+                    setGridScale(gridScale + 10);
+                } else if (e.key === '-' || e.key === '_') {
+                    // Zoom out
+                    setGridScale(gridScale - 10);
                 }
             });
         }
@@ -1273,8 +1989,22 @@
             setupEventListeners();
             updateHintButton();
             updateModeButtons();
-            newGame();
-            updateStatisticsDisplay();
+            
+            // Load saved settings
+            loadSettings();
+            
+            // Load saved statistics
+            loadStats();
+            
+            // Try to load current game, if that fails, start a new game
+            if (!loadCurrentGame()) {
+                newGame();
+            }
+            
+            // Start auto-save if enabled
+            if (autoSaveEnabled) {
+                startAutoSave();
+            }
         }
         
         // Start game once DOM is loaded
