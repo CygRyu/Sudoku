@@ -51,6 +51,45 @@
             100% { opacity: 0.8; }
         }
         
+        /* Cell highlighting */
+        .cell-highlighted {
+            background-color: rgba(255, 204, 0, 0.1) !important;
+        }
+        
+        .dark .cell-highlighted {
+            background-color: rgba(255, 204, 0, 0.07) !important;
+        }
+        
+        .cell-same-number {
+            background-color: rgba(0, 128, 255, 0.1) !important;
+        }
+        
+        .dark .cell-same-number {
+            background-color: rgba(0, 128, 255, 0.07) !important;
+        }
+        
+        /* Pencil marks */
+        .pencil-marks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100%;
+            height: 100%;
+            font-size: 0.6rem;
+            line-height: 1;
+        }
+        
+        .pencil-mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .dark .pencil-mark {
+            color: #aaa;
+        }
+        
         /* Dark mode styles */
         .dark .cell-selected {
             box-shadow: 0 0 0 2px #FFCC00;
@@ -97,6 +136,11 @@
                 </svg>
             </div>
             <h1 class="text-2xl sm:text-3xl font-batman tracking-wider text-batman-black">SUDOKU</h1>
+            <button id="stats-btn" class="absolute right-4 bg-gray-900 text-white p-2 rounded-full hover:bg-gray-800 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+            </button>
         </div>
         
         <!-- Game Status Message -->
@@ -111,8 +155,29 @@
             </div>
         </div>
         
-        <!-- Number Controls -->
+        <!-- Game Controls -->
         <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900">
+            <!-- Input Modes -->
+            <div class="flex justify-center mb-2">
+                <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded">
+                    <button id="normal-mode-btn" class="px-3 py-1 rounded bg-batman-yellow text-batman-black font-bold text-sm">Normal</button>
+                    <button id="pencil-mode-btn" class="px-3 py-1 rounded text-gray-700 dark:text-gray-300 font-bold text-sm">Pencil Mark</button>
+                </div>
+            </div>
+            
+            <!-- Highlight Options -->
+            <div class="flex justify-center gap-2 mb-3">
+                <label class="flex items-center cursor-pointer text-sm">
+                    <input type="checkbox" id="highlight-row-col-box" class="mr-1 h-4 w-4" checked>
+                    <span>Highlight Row/Col/Box</span>
+                </label>
+                <label class="flex items-center cursor-pointer text-sm">
+                    <input type="checkbox" id="highlight-same-numbers" class="mr-1 h-4 w-4" checked>
+                    <span>Highlight Same Numbers</span>
+                </label>
+            </div>
+            
+            <!-- Number Buttons -->
             <div class="grid grid-cols-5 gap-2">
                 <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="1">1</button>
                 <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="2">2</button>
@@ -210,6 +275,35 @@
         </div>
     </div>
 
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Detective Records</h3>
+                <button id="close-stats-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Statistics Panel -->
+            <div class="mb-6">
+                <h4 class="font-bold mb-2 dark:text-batman-yellow">Statistics</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Puzzles Solved</div>
+                        <div id="puzzles-solved" class="text-xl font-bold dark:text-white">0</div>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">No Hint Solves</div>
+                        <div id="no-hint-solves" class="text-xl font-bold dark:text-white">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Dark mode detection
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -229,6 +323,19 @@
         let initialCells = Array(9).fill().map(() => Array(9).fill(false));
         let selectedCell = null;
         let hintsRemaining = 3;
+        
+        // New variables for enhanced features
+        let pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+        let isPencilMode = false;
+        let highlightRowColBox = true;
+        let highlightSameNumbers = true;
+        
+        // Statistics 
+        let stats = {
+            puzzlesSolved: 0,
+            noHintSolves: 0,
+            currentGameUsedHint: false
+        };
 
         // Initialize the game board
         function initializeBoard() {
@@ -272,9 +379,75 @@
                 selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
             }
             
+            // Clear all highlights
+            clearHighlights();
+            
             // Set new selection
             selectedCell = cell;
             cell.classList.add('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+            
+            // Apply highlighting based on settings
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            
+            if (highlightRowColBox) {
+                highlightRelatedCells(row, col);
+            }
+            
+            if (highlightSameNumbers && board[row][col] !== 0) {
+                highlightSameNumber(board[row][col]);
+            }
+        }
+        
+        // Clear all cell highlights
+        function clearHighlights() {
+            document.querySelectorAll('.cell-highlighted, .cell-same-number').forEach(cell => {
+                cell.classList.remove('cell-highlighted', 'cell-same-number');
+            });
+        }
+        
+        // Highlight cells in the same row, column, and box
+        function highlightRelatedCells(row, col) {
+            // Highlight row
+            for (let c = 0; c < 9; c++) {
+                if (c !== col) {
+                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${c}"]`);
+                    cell.classList.add('cell-highlighted');
+                }
+            }
+            
+            // Highlight column
+            for (let r = 0; r < 9; r++) {
+                if (r !== row) {
+                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${col}"]`);
+                    cell.classList.add('cell-highlighted');
+                }
+            }
+            
+            // Highlight box
+            const boxRowStart = Math.floor(row / 3) * 3;
+            const boxColStart = Math.floor(col / 3) * 3;
+            
+            for (let r = boxRowStart; r < boxRowStart + 3; r++) {
+                for (let c = boxColStart; c < boxColStart + 3; c++) {
+                    if (r !== row || c !== col) {
+                        const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                        cell.classList.add('cell-highlighted');
+                    }
+                }
+            }
+        }
+        
+        // Highlight cells with the same number
+        function highlightSameNumber(num) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === num) {
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('cell-same-number');
+                    }
+                }
+            }
         }
         
         // Update the board display
@@ -286,10 +459,12 @@
                 const col = parseInt(cell.dataset.col);
                 const value = board[row][col];
                 
-                // Reset styles
+                // Reset cell content
+                cell.innerHTML = '';
                 cell.classList.remove('text-blue-600', 'text-black', 'dark:text-white', 'dark:text-batman-yellow', 'font-bold', 'cell-conflict');
                 
                 if (value !== 0) {
+                    // Display the value
                     cell.textContent = value;
                     
                     if (initialCells[row][col]) {
@@ -300,7 +475,24 @@
                         cell.classList.add('text-blue-600', 'dark:text-white');
                     }
                 } else {
-                    cell.textContent = '';
+                    // Check if there are pencil marks for this cell
+                    const cellPencilMarks = pencilMarks[row][col];
+                    if (cellPencilMarks.some(mark => mark)) {
+                        // Create pencil marks grid
+                        const marksContainer = document.createElement('div');
+                        marksContainer.classList.add('pencil-marks');
+                        
+                        for (let num = 1; num <= 9; num++) {
+                            const markSpan = document.createElement('div');
+                            markSpan.classList.add('pencil-mark');
+                            if (cellPencilMarks[num-1]) {
+                                markSpan.textContent = num;
+                            }
+                            marksContainer.appendChild(markSpan);
+                        }
+                        
+                        cell.appendChild(marksContainer);
+                    }
                 }
             });
             
@@ -479,6 +671,9 @@
             // Reset initial cells tracking
             initialCells = Array(9).fill().map(() => Array(9).fill(true));
             
+            // Reset pencil marks
+            pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+            
             // Get all cell positions
             const positions = [];
             for (let row = 0; row < 9; row++) {
@@ -507,6 +702,9 @@
                     initialCells[row][col] = true;
                 }
             }
+            
+            // Reset current game hint tracking
+            stats.currentGameUsedHint = false;
         }
         
         // Check if the puzzle has a unique solution
@@ -581,6 +779,9 @@
                 selectedCell = null;
             }
             
+            // Clear highlights
+            clearHighlights();
+            
             // Show message
             showStatus("New case file opened, Detective.", false);
         }
@@ -606,6 +807,18 @@
                 showStatus("There are mistakes in your solution. The Riddler laughs.", true);
             } else {
                 showStatus("Case solved! Batman would be proud.", false);
+                
+                // Update statistics
+                stats.puzzlesSolved++;
+                if (!stats.currentGameUsedHint) {
+                    stats.noHintSolves++;
+                }
+                
+                // Update statistics display
+                updateStatisticsDisplay();
+                
+                // Save statistics
+                saveGameState();
             }
         }
         
@@ -638,6 +851,9 @@
             board[cell.row][cell.col] = solution[cell.row][cell.col];
             initialCells[cell.row][cell.col] = true;
             
+            // Clear pencil marks for this cell
+            pencilMarks[cell.row][cell.col] = Array(9).fill(false);
+            
             // Update the board
             updateBoard();
             
@@ -645,13 +861,58 @@
             hintsRemaining--;
             updateHintButton();
             
+            // Mark that a hint was used in this game
+            stats.currentGameUsedHint = true;
+            
             showStatus("Oracle has provided intel. Hints remaining: " + hintsRemaining, false);
+        }
+        
+        // Toggle pencil mark for a cell
+        function togglePencilMark(row, col, num) {
+            pencilMarks[row][col][num-1] = !pencilMarks[row][col][num-1];
+            updateBoard();
+        }
+        
+        // Set a cell's value (normal mode)
+        function setCellValue(row, col, value) {
+            // Clear pencil marks when setting a value
+            pencilMarks[row][col] = Array(9).fill(false);
+            
+            // Set the cell value
+            board[row][col] = value;
+            updateBoard();
         }
         
         // Update the hint button text
         function updateHintButton() {
             const hintBtn = document.getElementById('hint-btn');
             hintBtn.textContent = `HINT (${hintsRemaining})`;
+        }
+        
+        // Update the mode buttons
+        function updateModeButtons() {
+            const normalModeBtn = document.getElementById('normal-mode-btn');
+            const pencilModeBtn = document.getElementById('pencil-mode-btn');
+            
+            if (isPencilMode) {
+                normalModeBtn.classList.remove('bg-batman-yellow', 'text-batman-black');
+                normalModeBtn.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                
+                pencilModeBtn.classList.remove('text-gray-700', 'dark:text-gray-300');
+                pencilModeBtn.classList.add('bg-batman-yellow', 'text-batman-black');
+            } else {
+                normalModeBtn.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                normalModeBtn.classList.add('bg-batman-yellow', 'text-batman-black');
+                
+                pencilModeBtn.classList.remove('bg-batman-yellow', 'text-batman-black');
+                pencilModeBtn.classList.add('text-gray-700', 'dark:text-gray-300');
+            }
+        }
+        
+        // Update statistics display
+        function updateStatisticsDisplay() {
+            document.getElementById('puzzles-solved').textContent = stats.puzzlesSolved;
+            document.getElementById('no-hint-solves').textContent = stats.noHintSolves;
         }
         
         // Show a status message
@@ -690,7 +951,9 @@
                 board: board,
                 initialCells: initialCells,
                 solution: solution,
-                hintsRemaining: hintsRemaining
+                hintsRemaining: hintsRemaining,
+                pencilMarks: pencilMarks,
+                stats: stats
             };
             
             return btoa(JSON.stringify(puzzleData));
@@ -713,6 +976,19 @@
                 solution = puzzleData.solution;
                 hintsRemaining = puzzleData.hintsRemaining;
                 
+                // Handle pencil marks (optional in older saves)
+                if (puzzleData.pencilMarks) {
+                    pencilMarks = puzzleData.pencilMarks;
+                } else {
+                    pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+                }
+                
+                // Handle stats (optional in older saves)
+                if (puzzleData.stats) {
+                    stats = puzzleData.stats;
+                    updateStatisticsDisplay();
+                }
+                
                 // Update the UI
                 updateBoard();
                 updateHintButton();
@@ -723,6 +999,9 @@
                     selectedCell = null;
                 }
                 
+                // Clear highlights
+                clearHighlights();
+                
                 return true;
             } catch (e) {
                 console.error("Error decoding puzzle:", e);
@@ -730,11 +1009,18 @@
             }
         }
         
-        // Share the current puzzle
-        function sharePuzzle() {
+        // Save game state
+        function saveGameState() {
+            // Save the encoded state to the share code input
+            // (Since localStorage is not available, we'll use the share modal)
             const encodedPuzzle = encodePuzzle();
             const shareCodeInput = document.getElementById('share-code');
             shareCodeInput.value = encodedPuzzle;
+        }
+        
+        // Share the current puzzle
+        function sharePuzzle() {
+            saveGameState();
             
             // Show the share modal
             document.getElementById('share-modal').style.display = 'flex';
@@ -786,6 +1072,12 @@
             }
         }
         
+        // Show statistics
+        function showStatistics() {
+            updateStatisticsDisplay();
+            document.getElementById('stats-modal').style.display = 'flex';
+        }
+        
         // Set up event listeners
         function setupEventListeners() {
             // Number buttons
@@ -804,8 +1096,15 @@
                         return;
                     }
                     
-                    board[row][col] = parseInt(button.dataset.num);
-                    updateBoard();
+                    const num = parseInt(button.dataset.num);
+                    
+                    if (isPencilMode) {
+                        // Toggle pencil mark for this number
+                        togglePencilMark(row, col, num);
+                    } else {
+                        // Set the cell value
+                        setCellValue(row, col, num);
+                    }
                 });
             });
             
@@ -824,8 +1123,61 @@
                     return;
                 }
                 
-                board[row][col] = 0;
+                if (isPencilMode) {
+                    // Clear all pencil marks for this cell
+                    pencilMarks[row][col] = Array(9).fill(false);
+                } else {
+                    // Clear the cell value
+                    board[row][col] = 0;
+                }
+                
                 updateBoard();
+            });
+            
+            // Mode toggle buttons
+            document.getElementById('normal-mode-btn').addEventListener('click', () => {
+                isPencilMode = false;
+                updateModeButtons();
+            });
+            
+            document.getElementById('pencil-mode-btn').addEventListener('click', () => {
+                isPencilMode = true;
+                updateModeButtons();
+            });
+            
+            // Highlight toggle checkboxes
+            document.getElementById('highlight-row-col-box').addEventListener('change', (e) => {
+                highlightRowColBox = e.target.checked;
+                if (selectedCell) {
+                    clearHighlights();
+                    const row = parseInt(selectedCell.dataset.row);
+                    const col = parseInt(selectedCell.dataset.col);
+                    
+                    if (highlightRowColBox) {
+                        highlightRelatedCells(row, col);
+                    }
+                    
+                    if (highlightSameNumbers && board[row][col] !== 0) {
+                        highlightSameNumber(board[row][col]);
+                    }
+                }
+            });
+            
+            document.getElementById('highlight-same-numbers').addEventListener('change', (e) => {
+                highlightSameNumbers = e.target.checked;
+                if (selectedCell) {
+                    clearHighlights();
+                    const row = parseInt(selectedCell.dataset.row);
+                    const col = parseInt(selectedCell.dataset.col);
+                    
+                    if (highlightRowColBox) {
+                        highlightRelatedCells(row, col);
+                    }
+                    
+                    if (highlightSameNumbers && board[row][col] !== 0) {
+                        highlightSameNumber(board[row][col]);
+                    }
+                }
             });
             
             // New game button
@@ -846,6 +1198,9 @@
             // Copy button
             document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
             
+            // Statistics button
+            document.getElementById('stats-btn').addEventListener('click', showStatistics);
+            
             // Close share modal
             document.getElementById('close-share-modal').addEventListener('click', () => {
                 document.getElementById('share-modal').style.display = 'none';
@@ -857,6 +1212,11 @@
                 document.getElementById('import-error').classList.add('hidden');
             });
             
+            // Close stats modal
+            document.getElementById('close-stats-modal').addEventListener('click', () => {
+                document.getElementById('stats-modal').style.display = 'none';
+            });
+            
             // Import submit button
             document.getElementById('import-submit-btn').addEventListener('click', submitImportedPuzzle);
             
@@ -864,6 +1224,7 @@
             window.addEventListener('click', (e) => {
                 const shareModal = document.getElementById('share-modal');
                 const importModal = document.getElementById('import-modal');
+                const statsModal = document.getElementById('stats-modal');
                 
                 if (e.target === shareModal) {
                     shareModal.style.display = 'none';
@@ -872,6 +1233,10 @@
                 if (e.target === importModal) {
                     importModal.style.display = 'none';
                     document.getElementById('import-error').classList.add('hidden');
+                }
+                
+                if (e.target === statsModal) {
+                    statsModal.style.display = 'none';
                 }
             });
             
@@ -885,10 +1250,18 @@
                 if (initialCells[row][col]) return;
                 
                 if (e.key >= '1' && e.key <= '9') {
-                    board[row][col] = parseInt(e.key);
-                    updateBoard();
+                    const num = parseInt(e.key);
+                    if (isPencilMode) {
+                        togglePencilMark(row, col, num);
+                    } else {
+                        setCellValue(row, col, num);
+                    }
                 } else if (e.key === 'Backspace' || e.key === 'Delete') {
-                    board[row][col] = 0;
+                    if (isPencilMode) {
+                        pencilMarks[row][col] = Array(9).fill(false);
+                    } else {
+                        board[row][col] = 0;
+                    }
                     updateBoard();
                 }
             });
@@ -899,7 +1272,9 @@
             initializeBoard();
             setupEventListeners();
             updateHintButton();
+            updateModeButtons();
             newGame();
+            updateStatisticsDisplay();
         }
         
         // Start game once DOM is loaded
