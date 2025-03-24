@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'batman-yellow': '#FFCC00',
+                        'batman-gray': '#1E1E1E',
+                        'batman-black': '#000000',
+                    },
+                    fontFamily: {
+                        'batman': ['Impact', 'Arial Black', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gotham-city': "url('data:image/svg+xml,%3Csvg width=\"100%25\" height=\"100%25\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cdefs%3E%3Cpattern id=\"pattern\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M25,0 L50,50 L25,100 L0,50 Z M75,0 L100,50 L75,100 L50,50 Z\" fill=\"%23111111\" fill-opacity=\"0.2\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100%25\" height=\"100%25\" fill=\"url(%23pattern)\"/%3E%3C/svg%3E')",
+                    }
+                },
+            },
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        @keyframes batSignalGlow {
+            0% { filter: drop-shadow(0 0 2px rgba(255, 204, 0, 0.5)); }
+            50% { filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.8)); }
+            100% { filter: drop-shadow(0 0 2px rgba(255, 204, 0, 0.5)); }
+        }
+        
+        .bat-signal {
+            animation: batSignalGlow 4s infinite;
+        }
+        
+        .cell-selected {
+            box-shadow: 0 0 0 2px #FFCC00;
+        }
+        
+        .cell-conflict {
+            color: #FF0000 !important;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        /* Dark mode styles */
+        .dark .cell-selected {
+            box-shadow: 0 0 0 2px #FFCC00;
+        }
+        
+        .dark .cell-conflict {
+            color: #FF5252 !important;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Dropdown styles */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            z-index: 1;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 dark:bg-batman-gray dark:text-white bg-gotham-city p-4 flex flex-col items-center">
+    <!-- Batman App Container -->
+    <div class="w-full max-w-md mx-auto bg-white dark:bg-batman-black rounded-lg shadow-xl overflow-hidden">
+        <!-- Header with Batman Logo -->
+        <div class="relative bg-batman-yellow dark:bg-batman-yellow py-4 px-6 flex justify-center items-center">
+            <div class="absolute left-4 bat-signal">
+                <svg width="36" height="20" viewBox="0 0 36 20" fill="black">
+                    <path d="M18,0 C12,0 7,3 4,8 C3,10 3,12 4,14 C7,19 12,22 18,22 C24,22 29,19 32,14 C33,12 33,10 32,8 C29,3 24,0 18,0 Z M18,4 C22,4 25,6 27,9 C28,11 28,13 27,15 C25,18 22,20 18,20 C14,20 11,18 9,15 C8,13 8,11 9,9 C11,6 14,4 18,4 Z M12,10 C12,10 13,14 18,14 C23,14 24,10 24,10 C24,10 21,12 18,12 C15,12 12,10 12,10 Z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-batman tracking-wider text-batman-black">SUDOKU</h1>
+        </div>
+        
+        <!-- Game Status Message -->
+        <div id="status" class="bg-gray-200 dark:bg-gray-800 text-center py-2 font-bold text-gray-800 dark:text-batman-yellow">
+            Ready to solve Gotham's puzzles?
+        </div>
+        
+        <!-- Sudoku Grid -->
+        <div class="p-3 sm:p-4 flex justify-center">
+            <div id="sudoku-board" class="grid grid-cols-9 gap-0.5 bg-gray-800 p-1 rounded">
+                <!-- Grid cells will be generated with JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Number Controls -->
+        <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900">
+            <div class="grid grid-cols-5 gap-2">
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="1">1</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="2">2</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="3">3</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="4">4</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="5">5</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="6">6</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="7">7</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="8">8</button>
+                <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="9">9</button>
+                <button id="erase-btn" class="col-span-1 bg-gray-700 text-white font-bold h-10 rounded shadow hover:bg-gray-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v9a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="p-3 sm:p-4 bg-gray-200 dark:bg-gray-800 flex flex-wrap justify-between gap-2">
+            <button id="new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-yellow-400 transition">
+                NEW PUZZLE
+            </button>
+            <button id="hint-btn" class="bg-gray-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-gray-500 transition">
+                HINT
+            </button>
+            <button id="check-btn" class="bg-gray-900 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-gray-800 transition">
+                CHECK
+            </button>
+        </div>
+        
+        <!-- Share/Import Buttons -->
+        <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900 flex flex-wrap justify-between gap-2">
+            <button id="share-btn" class="bg-blue-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-blue-700 transition flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                SHARE PUZZLE
+            </button>
+            <button id="import-btn" class="bg-green-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-green-700 transition flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                IMPORT PUZZLE
+            </button>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center py-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-900">
+            Developed by CygRyu
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Share Puzzle</h3>
+                <button id="close-share-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="mb-4 dark:text-gray-300">Copy this code to share the current puzzle:</p>
+            <div class="relative">
+                <input id="share-code" type="text" readonly class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm font-mono" />
+                <button id="copy-btn" class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </button>
+            </div>
+            <p id="copy-message" class="mt-2 text-green-600 hidden">Copied to clipboard!</p>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="import-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Import Puzzle</h3>
+                <button id="close-import-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="mb-4 dark:text-gray-300">Paste the puzzle code below:</p>
+            <input id="import-code" type="text" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-4 text-base" placeholder="Paste puzzle code here" />
+            <div class="flex justify-end">
+                <button id="import-submit-btn" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">Import</button>
+            </div>
+            <p id="import-error" class="mt-2 text-red-600 hidden">Invalid puzzle code. Please try again.</p>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Game state variables
+        let board = Array(9).fill().map(() => Array(9).fill(0));
+        let solution = Array(9).fill().map(() => Array(9).fill(0));
+        let initialCells = Array(9).fill().map(() => Array(9).fill(false));
+        let selectedCell = null;
+        let hintsRemaining = 3;
+
+        // Initialize the game board
+        function initializeBoard() {
+            const sudokuBoard = document.getElementById('sudoku-board');
+            sudokuBoard.innerHTML = '';
+            
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add(
+                        'cell', 
+                        'w-8', 'h-8', 'sm:w-9', 'sm:h-9', 
+                        'flex', 'items-center', 'justify-center', 
+                        'bg-white', 'dark:bg-gray-700', 
+                        'text-lg', 'font-bold', 'cursor-pointer',
+                        'transition', 'duration-150'
+                    );
+                    
+                    // Add box borders
+                    if (row % 3 === 0 && row !== 0) {
+                        cell.classList.add('border-t-2', 'border-t-gray-900', 'dark:border-t-batman-yellow');
+                    }
+                    if (col % 3 === 0 && col !== 0) {
+                        cell.classList.add('border-l-2', 'border-l-gray-900', 'dark:border-l-batman-yellow');
+                    }
+                    
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    cell.addEventListener('click', () => selectCell(cell));
+                    
+                    sudokuBoard.appendChild(cell);
+                }
+            }
+        }
+        
+        // Select a cell
+        function selectCell(cell) {
+            // Clear previous selection
+            if (selectedCell) {
+                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+            }
+            
+            // Set new selection
+            selectedCell = cell;
+            cell.classList.add('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+        }
+        
+        // Update the board display
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const value = board[row][col];
+                
+                // Reset styles
+                cell.classList.remove('text-blue-600', 'text-black', 'dark:text-white', 'dark:text-batman-yellow', 'font-bold', 'cell-conflict');
+                
+                if (value !== 0) {
+                    cell.textContent = value;
+                    
+                    if (initialCells[row][col]) {
+                        // Initial cells
+                        cell.classList.add('text-black', 'dark:text-batman-yellow', 'font-bold');
+                    } else {
+                        // User entered cells
+                        cell.classList.add('text-blue-600', 'dark:text-white');
+                    }
+                } else {
+                    cell.textContent = '';
+                }
+            });
+            
+            // Check for conflicts after updating values
+            checkForConflicts();
+        }
+        
+        // Check for conflicts in rows, columns and boxes
+        function checkForConflicts() {
+            // Clear all conflicts first
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('cell-conflict');
+            });
+            
+            // Check rows
+            for (let row = 0; row < 9; row++) {
+                const rowValues = {};
+                for (let col = 0; col < 9; col++) {
+                    const value = board[row][col];
+                    if (value !== 0) {
+                        if (rowValues[value]) {
+                            // Conflict found in row
+                            for (let c = 0; c < 9; c++) {
+                                if (board[row][c] === value) {
+                                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${c}"]`);
+                                    cell.classList.add('cell-conflict');
+                                }
+                            }
+                        }
+                        rowValues[value] = true;
+                    }
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 9; col++) {
+                const colValues = {};
+                for (let row = 0; row < 9; row++) {
+                    const value = board[row][col];
+                    if (value !== 0) {
+                        if (colValues[value]) {
+                            // Conflict found in column
+                            for (let r = 0; r < 9; r++) {
+                                if (board[r][col] === value) {
+                                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${col}"]`);
+                                    cell.classList.add('cell-conflict');
+                                }
+                            }
+                        }
+                        colValues[value] = true;
+                    }
+                }
+            }
+            
+            // Check 3x3 boxes
+            for (let boxRow = 0; boxRow < 3; boxRow++) {
+                for (let boxCol = 0; boxCol < 3; boxCol++) {
+                    const boxValues = {};
+                    for (let r = 0; r < 3; r++) {
+                        for (let c = 0; c < 3; c++) {
+                            const row = boxRow * 3 + r;
+                            const col = boxCol * 3 + c;
+                            const value = board[row][col];
+                            
+                            if (value !== 0) {
+                                if (boxValues[value]) {
+                                    // Conflict found in box
+                                    for (let rr = 0; rr < 3; rr++) {
+                                        for (let cc = 0; cc < 3; cc++) {
+                                            const conflictRow = boxRow * 3 + rr;
+                                            const conflictCol = boxCol * 3 + cc;
+                                            if (board[conflictRow][conflictCol] === value) {
+                                                const cell = document.querySelector(`.cell[data-row="${conflictRow}"][data-col="${conflictCol}"]`);
+                                                cell.classList.add('cell-conflict');
+                                            }
+                                        }
+                                    }
+                                }
+                                boxValues[value] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Generate a complete, solved Sudoku board
+        function generateSolution() {
+            // Initialize empty solution
+            solution = Array(9).fill().map(() => Array(9).fill(0));
+            
+            // Fill the diagonal boxes first (these can be filled independently)
+            for (let box = 0; box < 9; box += 3) {
+                fillBox(box, box);
+            }
+            
+            // Fill the rest of the board
+            solveSudoku();
+            
+            return solution;
+        }
+        
+        // Fill a 3x3 box with random numbers
+        function fillBox(startRow, startCol) {
+            const nums = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            let index = 0;
+            
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    solution[startRow + row][startCol + col] = nums[index++];
+                }
+            }
+        }
+        
+        // Solve the Sudoku puzzle using backtracking
+        function solveSudoku() {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    // Skip filled cells
+                    if (solution[row][col] !== 0) continue;
+                    
+                    // Try each number
+                    for (let num = 1; num <= 9; num++) {
+                        if (isValid(solution, row, col, num)) {
+                            solution[row][col] = num;
+                            
+                            // If we can solve the rest of the puzzle, we're done
+                            if (solveSudoku()) {
+                                return true;
+                            }
+                            
+                            // Otherwise, backtrack
+                            solution[row][col] = 0;
+                        }
+                    }
+                    
+                    // If we get here, no number worked, so we need to backtrack
+                    return false;
+                }
+            }
+            
+            // If we've filled all cells, we've solved the puzzle
+            return true;
+        }
+        
+        // Check if placing a number at a position is valid
+        function isValid(grid, row, col, num) {
+            // Check row
+            for (let x = 0; x < 9; x++) {
+                if (grid[row][x] === num) return false;
+            }
+            
+            // Check column
+            for (let x = 0; x < 9; x++) {
+                if (grid[x][col] === num) return false;
+            }
+            
+            // Check 3x3 box
+            const boxRow = Math.floor(row / 3) * 3;
+            const boxCol = Math.floor(col / 3) * 3;
+            
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (grid[boxRow + r][boxCol + c] === num) return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Create a puzzle by removing cells from the solution
+        function createPuzzle(difficulty) {
+            // Start with the full solution
+            board = JSON.parse(JSON.stringify(solution));
+            
+            // Reset initial cells tracking
+            initialCells = Array(9).fill().map(() => Array(9).fill(true));
+            
+            // Get all cell positions
+            const positions = [];
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    positions.push({ row, col });
+                }
+            }
+            
+            // Shuffle positions
+            shuffleArray(positions);
+            
+            // For hard difficulty, leave only ~25 clues (remove ~56 cells)
+            let cellsToRemove = 56;
+            
+            // Remove cells one by one, ensuring the puzzle remains uniquely solvable
+            for (let i = 0; i < cellsToRemove && i < positions.length; i++) {
+                const { row, col } = positions[i];
+                const temp = board[row][col];
+                board[row][col] = 0;
+                initialCells[row][col] = false;
+                
+                // If removing this cell makes the puzzle have multiple solutions,
+                // put the number back
+                if (!hasUniqueSolution()) {
+                    board[row][col] = temp;
+                    initialCells[row][col] = true;
+                }
+            }
+        }
+        
+        // Check if the puzzle has a unique solution
+        // (This is a simplified version that just verifies one solution exists)
+        function hasUniqueSolution() {
+            const tempBoard = JSON.parse(JSON.stringify(board));
+            return solveBoard(tempBoard);
+        }
+        
+        // Solve a given board using backtracking
+        function solveBoard(grid) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid[row][col] === 0) {
+                        for (let num = 1; num <= 9; num++) {
+                            if (isValidPlace(grid, row, col, num)) {
+                                grid[row][col] = num;
+                                
+                                if (solveBoard(grid)) {
+                                    return true;
+                                }
+                                
+                                grid[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        // Check if a number can be placed in a cell
+        function isValidPlace(grid, row, col, num) {
+            // Check row
+            for (let x = 0; x < 9; x++) {
+                if (grid[row][x] === num) return false;
+            }
+            
+            // Check column
+            for (let x = 0; x < 9; x++) {
+                if (grid[x][col] === num) return false;
+            }
+            
+            // Check 3x3 box
+            const boxRow = Math.floor(row / 3) * 3;
+            const boxCol = Math.floor(col / 3) * 3;
+            
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (grid[boxRow + r][boxCol + c] === num) return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Start a new game
+        function newGame() {
+            // Reset hints
+            hintsRemaining = 3;
+            updateHintButton();
+            
+            // Generate a new puzzle
+            generateSolution();
+            createPuzzle('hard');
+            updateBoard();
+            
+            // Reset selected cell
+            if (selectedCell) {
+                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                selectedCell = null;
+            }
+            
+            // Show message
+            showStatus("New case file opened, Detective.", false);
+        }
+        
+        // Check the current solution
+        function checkSolution() {
+            let isFull = true;
+            let isCorrect = true;
+            
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        isFull = false;
+                    } else if (board[row][col] !== solution[row][col]) {
+                        isCorrect = false;
+                    }
+                }
+            }
+            
+            if (!isFull) {
+                showStatus("The puzzle isn't complete yet, keep investigating!", true);
+            } else if (!isCorrect) {
+                showStatus("There are mistakes in your solution. The Riddler laughs.", true);
+            } else {
+                showStatus("Case solved! Batman would be proud.", false);
+            }
+        }
+        
+        // Get a hint
+        function getHint() {
+            if (hintsRemaining <= 0) {
+                showStatus("No more hints available. You're on your own now.", true);
+                return;
+            }
+            
+            // Find an unfilled cell
+            const emptyCells = [];
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        emptyCells.push({ row, col });
+                    }
+                }
+            }
+            
+            if (emptyCells.length === 0) {
+                showStatus("No empty cells to give hints for!", true);
+                return;
+            }
+            
+            // Choose a random empty cell
+            const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            
+            // Fill in the correct value
+            board[cell.row][cell.col] = solution[cell.row][cell.col];
+            initialCells[cell.row][cell.col] = true;
+            
+            // Update the board
+            updateBoard();
+            
+            // Reduce hints
+            hintsRemaining--;
+            updateHintButton();
+            
+            showStatus("Oracle has provided intel. Hints remaining: " + hintsRemaining, false);
+        }
+        
+        // Update the hint button text
+        function updateHintButton() {
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.textContent = `HINT (${hintsRemaining})`;
+        }
+        
+        // Show a status message
+        function showStatus(message, isError) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            
+            if (isError) {
+                statusEl.classList.remove('text-gray-800', 'dark:text-batman-yellow');
+                statusEl.classList.add('text-red-600', 'dark:text-red-400');
+            } else {
+                statusEl.classList.remove('text-red-600', 'dark:text-red-400');
+                statusEl.classList.add('text-gray-800', 'dark:text-batman-yellow');
+            }
+            
+            // Reset after delay
+            setTimeout(() => {
+                statusEl.classList.remove('text-red-600', 'dark:text-red-400');
+                statusEl.classList.add('text-gray-800', 'dark:text-batman-yellow');
+                statusEl.textContent = "Solve the puzzle, save the city.";
+            }, 3000);
+        }
+        
+        // Shuffle array in-place
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Encode the current puzzle to base64
+        function encodePuzzle() {
+            const puzzleData = {
+                board: board,
+                initialCells: initialCells,
+                solution: solution,
+                hintsRemaining: hintsRemaining
+            };
+            
+            return btoa(JSON.stringify(puzzleData));
+        }
+        
+        // Decode a puzzle from base64
+        function decodePuzzle(encoded) {
+            try {
+                const puzzleData = JSON.parse(atob(encoded));
+                
+                // Validate data
+                if (!puzzleData.board || !puzzleData.initialCells || !puzzleData.solution || 
+                    puzzleData.hintsRemaining === undefined) {
+                    return false;
+                }
+                
+                // Set the game state
+                board = puzzleData.board;
+                initialCells = puzzleData.initialCells;
+                solution = puzzleData.solution;
+                hintsRemaining = puzzleData.hintsRemaining;
+                
+                // Update the UI
+                updateBoard();
+                updateHintButton();
+                
+                // Reset selected cell
+                if (selectedCell) {
+                    selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                    selectedCell = null;
+                }
+                
+                return true;
+            } catch (e) {
+                console.error("Error decoding puzzle:", e);
+                return false;
+            }
+        }
+        
+        // Share the current puzzle
+        function sharePuzzle() {
+            const encodedPuzzle = encodePuzzle();
+            const shareCodeInput = document.getElementById('share-code');
+            shareCodeInput.value = encodedPuzzle;
+            
+            // Show the share modal
+            document.getElementById('share-modal').style.display = 'flex';
+        }
+        
+        // Import a puzzle
+        function importPuzzle() {
+            // Show the import modal
+            document.getElementById('import-modal').style.display = 'flex';
+        }
+        
+        // Copy the puzzle code to clipboard
+        function copyToClipboard() {
+            const shareCodeInput = document.getElementById('share-code');
+            shareCodeInput.select();
+            document.execCommand('copy');
+            
+            // Show copied message
+            const copyMessage = document.getElementById('copy-message');
+            copyMessage.classList.remove('hidden');
+            
+            // Hide the message after 2 seconds
+            setTimeout(() => {
+                copyMessage.classList.add('hidden');
+            }, 2000);
+        }
+        
+        // Submit imported puzzle
+        function submitImportedPuzzle() {
+            const importCode = document.getElementById('import-code').value;
+            const importError = document.getElementById('import-error');
+            
+            if (importCode.trim() === '') {
+                importError.textContent = "Please enter a puzzle code.";
+                importError.classList.remove('hidden');
+                return;
+            }
+            
+            const success = decodePuzzle(importCode);
+            
+            if (success) {
+                // Close the modal and show success message
+                document.getElementById('import-modal').style.display = 'none';
+                showStatus("Puzzle imported successfully.", false);
+            } else {
+                // Show error message
+                importError.textContent = "Invalid puzzle code. Please try again.";
+                importError.classList.remove('hidden');
+            }
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Number buttons
+            document.querySelectorAll('.number-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!selectedCell) {
+                        showStatus("Select a cell first, Detective.", true);
+                        return;
+                    }
+                    
+                    const row = parseInt(selectedCell.dataset.row);
+                    const col = parseInt(selectedCell.dataset.col);
+                    
+                    if (initialCells[row][col]) {
+                        showStatus("Can't change initial clues!", true);
+                        return;
+                    }
+                    
+                    board[row][col] = parseInt(button.dataset.num);
+                    updateBoard();
+                });
+            });
+            
+            // Erase button
+            document.getElementById('erase-btn').addEventListener('click', () => {
+                if (!selectedCell) {
+                    showStatus("Select a cell first, Detective.", true);
+                    return;
+                }
+                
+                const row = parseInt(selectedCell.dataset.row);
+                const col = parseInt(selectedCell.dataset.col);
+                
+                if (initialCells[row][col]) {
+                    showStatus("Can't change initial clues!", true);
+                    return;
+                }
+                
+                board[row][col] = 0;
+                updateBoard();
+            });
+            
+            // New game button
+            document.getElementById('new-game-btn').addEventListener('click', newGame);
+            
+            // Check button
+            document.getElementById('check-btn').addEventListener('click', checkSolution);
+            
+            // Hint button
+            document.getElementById('hint-btn').addEventListener('click', getHint);
+            
+            // Share button
+            document.getElementById('share-btn').addEventListener('click', sharePuzzle);
+            
+            // Import button
+            document.getElementById('import-btn').addEventListener('click', importPuzzle);
+            
+            // Copy button
+            document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+            
+            // Close share modal
+            document.getElementById('close-share-modal').addEventListener('click', () => {
+                document.getElementById('share-modal').style.display = 'none';
+            });
+            
+            // Close import modal
+            document.getElementById('close-import-modal').addEventListener('click', () => {
+                document.getElementById('import-modal').style.display = 'none';
+                document.getElementById('import-error').classList.add('hidden');
+            });
+            
+            // Import submit button
+            document.getElementById('import-submit-btn').addEventListener('click', submitImportedPuzzle);
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                const shareModal = document.getElementById('share-modal');
+                const importModal = document.getElementById('import-modal');
+                
+                if (e.target === shareModal) {
+                    shareModal.style.display = 'none';
+                }
+                
+                if (e.target === importModal) {
+                    importModal.style.display = 'none';
+                    document.getElementById('import-error').classList.add('hidden');
+                }
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', e => {
+                if (!selectedCell) return;
+                
+                const row = parseInt(selectedCell.dataset.row);
+                const col = parseInt(selectedCell.dataset.col);
+                
+                if (initialCells[row][col]) return;
+                
+                if (e.key >= '1' && e.key <= '9') {
+                    board[row][col] = parseInt(e.key);
+                    updateBoard();
+                } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                    board[row][col] = 0;
+                    updateBoard();
+                }
+            });
+        }
+        
+        // Initialize and start the game
+        function init() {
+            initializeBoard();
+            setupEventListeners();
+            updateHintButton();
+            newGame();
+        }
+        
+        // Start game once DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
