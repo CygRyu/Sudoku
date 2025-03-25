@@ -502,6 +502,44 @@
         </div>
     </div>
     
+    <!-- New Game Confirmation Modal -->
+    <div id="new-game-confirm-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Start New Puzzle?</h3>
+                <button id="close-new-game-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="mb-6 dark:text-gray-300">Starting a new puzzle will lose your current progress. Are you sure you want to continue?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-new-game-btn" class="bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">Cancel</button>
+                <button id="confirm-new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded shadow hover:bg-yellow-400 transition">Start New Puzzle</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hint Confirmation Modal -->
+    <div id="hint-confirm-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold dark:text-white">Use a Hint?</h3>
+                <button id="close-hint-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="mb-6 dark:text-gray-300">You have <span id="hints-remaining-display" class="font-bold text-batman-yellow"></span> hints left. Do you want to use one now?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-hint-btn" class="bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">Cancel</button>
+                <button id="confirm-hint-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded shadow hover:bg-yellow-400 transition">Use Hint</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Save Notification -->
     <div id="save-notification" class="dark:bg-gray-800 bg-gray-700 text-white px-4 py-2 rounded shadow-lg">
         Game auto-saved
@@ -1305,6 +1343,11 @@
             return true;
         }
         
+        // Show new game confirmation
+        function showNewGameConfirmation() {
+            document.getElementById('new-game-confirm-modal').style.display = 'flex';
+        }
+        
         // Start a new game
         function newGame() {
             // Reset hints
@@ -1336,6 +1379,37 @@
                 // Save game state
                 saveCurrentGame();
             }, 50);
+        }
+        
+        // Show hint confirmation
+        function showHintConfirmation() {
+            if (hintsRemaining <= 0) {
+                showStatus("No more hints available. You're on your own now.", true);
+                return;
+            }
+            
+            // Find if there are any unfilled cells
+            let hasEmptyCells = false;
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        hasEmptyCells = true;
+                        break;
+                    }
+                }
+                if (hasEmptyCells) break;
+            }
+            
+            if (!hasEmptyCells) {
+                showStatus("No empty cells to give hints for!", true);
+                return;
+            }
+            
+            // Update the hints remaining display in the modal
+            document.getElementById('hints-remaining-display').textContent = hintsRemaining;
+            
+            // Show the hint confirmation modal
+            document.getElementById('hint-confirm-modal').style.display = 'flex';
         }
         
         // Check the current solution
@@ -2265,14 +2339,42 @@
                 saveSettings();
             });
             
-            // New game button
-            document.getElementById('new-game-btn').addEventListener('click', newGame);
+            // New game button - Show confirmation instead of starting new game immediately
+            document.getElementById('new-game-btn').addEventListener('click', showNewGameConfirmation);
+            
+            // New game confirmation buttons
+            document.getElementById('confirm-new-game-btn').addEventListener('click', () => {
+                document.getElementById('new-game-confirm-modal').style.display = 'none';
+                newGame();
+            });
+            
+            document.getElementById('cancel-new-game-btn').addEventListener('click', () => {
+                document.getElementById('new-game-confirm-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-new-game-modal').addEventListener('click', () => {
+                document.getElementById('new-game-confirm-modal').style.display = 'none';
+            });
             
             // Check button
             document.getElementById('check-btn').addEventListener('click', checkSolution);
             
-            // Hint button
-            document.getElementById('hint-btn').addEventListener('click', getHint);
+            // Hint button - Show confirmation instead of using hint immediately
+            document.getElementById('hint-btn').addEventListener('click', showHintConfirmation);
+            
+            // Hint confirmation buttons
+            document.getElementById('confirm-hint-btn').addEventListener('click', () => {
+                document.getElementById('hint-confirm-modal').style.display = 'none';
+                getHint();
+            });
+            
+            document.getElementById('cancel-hint-btn').addEventListener('click', () => {
+                document.getElementById('hint-confirm-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-hint-modal').addEventListener('click', () => {
+                document.getElementById('hint-confirm-modal').style.display = 'none';
+            });
             
             // Share button
             document.getElementById('share-btn').addEventListener('click', sharePuzzle);
@@ -2395,6 +2497,8 @@
                 const statsModal = document.getElementById('stats-modal');
                 const settingsModal = document.getElementById('settings-modal');
                 const savedGamesModal = document.getElementById('saved-games-modal');
+                const newGameModal = document.getElementById('new-game-confirm-modal');
+                const hintModal = document.getElementById('hint-confirm-modal');
                 
                 if (e.target === shareModal) {
                     shareModal.style.display = 'none';
@@ -2415,6 +2519,14 @@
                 
                 if (e.target === savedGamesModal) {
                     savedGamesModal.style.display = 'none';
+                }
+                
+                if (e.target === newGameModal) {
+                    newGameModal.style.display = 'none';
+                }
+                
+                if (e.target === hintModal) {
+                    hintModal.style.display = 'none';
                 }
             });
             
