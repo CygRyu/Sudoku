@@ -540,6 +540,10 @@
         let autoSaveEnabled = true;
         let autoSaveInterval = null;
         
+        // Generation feedback variables
+        let puzzleGenerationTime = 0;
+        let cluesCount = 0;
+        
         // Statistics 
         let stats = {
             puzzlesSolved: 0,
@@ -1069,9 +1073,141 @@
             
             return true;
         }
+
+        // NEW: Enhanced uniqueness checker
+        function hasUniqueSolution() {
+            // Clone the current board to avoid modifying it
+            const tempBoard = JSON.parse(JSON.stringify(board));
+            
+            // Find the first solution
+            const firstSolution = findOneSolution(tempBoard);
+            if (!firstSolution) {
+                return false; // No solution exists
+            }
+            
+            // Try to find a second solution
+            const hasSecondSolution = findSecondSolution(tempBoard, firstSolution);
+            
+            // Return true only if exactly one solution exists
+            return !hasSecondSolution;
+        }
+
+        // NEW: Find one solution to the board
+        function findOneSolution(grid) {
+            // Create a copy of the grid to store the solution
+            const solution = JSON.parse(JSON.stringify(grid));
+            
+            // Find an empty cell
+            let emptyCell = findEmptyCell(solution);
+            if (!emptyCell) {
+                return solution; // Board is already solved
+            }
+            
+            // Use backtracking to find a solution
+            if (solveForOneSolution(solution)) {
+                return solution;
+            }
+            
+            return null; // No solution found
+        }
+
+        // NEW: Find a second different solution
+        function findSecondSolution(grid, firstSolution) {
+            // Create a copy of the grid to work with
+            const workGrid = JSON.parse(JSON.stringify(grid));
+            
+            // Try to find a solution different from the first one
+            return solveForSecondSolution(workGrid, firstSolution);
+        }
+
+        // NEW: Backtracking solver for first solution
+        function solveForOneSolution(grid) {
+            // Find an empty cell
+            let emptyCell = findEmptyCell(grid);
+            if (!emptyCell) {
+                return true; // No empty cells, puzzle is solved
+            }
+            
+            const { row, col } = emptyCell;
+            
+            // Try each number 1-9
+            for (let num = 1; num <= 9; num++) {
+                if (isValidPlace(grid, row, col, num)) {
+                    // Place the number
+                    grid[row][col] = num;
+                    
+                    // Recursively solve the rest of the puzzle
+                    if (solveForOneSolution(grid)) {
+                        return true;
+                    }
+                    
+                    // If we get here, this placement didn't work
+                    grid[row][col] = 0; // Backtrack
+                }
+            }
+            
+            return false; // No solution found with current grid
+        }
+
+        // NEW: Backtracking solver for second solution
+        function solveForSecondSolution(grid, firstSolution) {
+            // Find an empty cell
+            let emptyCell = findEmptyCell(grid);
+            if (!emptyCell) {
+                // Check if this solution is different from the first one
+                return isDifferentSolution(grid, firstSolution);
+            }
+            
+            const { row, col } = emptyCell;
+            
+            // Try each number 1-9
+            for (let num = 1; num <= 9; num++) {
+                if (isValidPlace(grid, row, col, num)) {
+                    // Place the number
+                    grid[row][col] = num;
+                    
+                    // Recursively solve the rest of the puzzle
+                    if (solveForSecondSolution(grid, firstSolution)) {
+                        return true; // Found a second solution
+                    }
+                    
+                    // If we get here, this placement didn't work
+                    grid[row][col] = 0; // Backtrack
+                }
+            }
+            
+            return false; // No second solution found with current grid
+        }
+
+        // NEW: Find an empty cell in the grid
+        function findEmptyCell(grid) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid[row][col] === 0) {
+                        return { row, col };
+                    }
+                }
+            }
+            return null; // No empty cells
+        }
+
+        // NEW: Check if two solutions are different
+        function isDifferentSolution(grid1, grid2) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid1[row][col] !== grid2[row][col]) {
+                        return true; // Found a difference
+                    }
+                }
+            }
+            return false; // Solutions are identical
+        }
         
         // Create a puzzle by removing cells from the solution
         function createPuzzle(difficulty) {
+            // Start timing puzzle generation
+            const startTime = performance.now();
+            
             // Start with the full solution
             board = JSON.parse(JSON.stringify(solution));
             
@@ -1092,28 +1228,43 @@
                 }
             }
             
-            // Shuffle positions
+            // Shuffle positions for random removal order
             shuffleArray(positions);
             
-            // For hard difficulty, leave only ~25 clues (remove ~56 cells)
-            let cellsToRemove = 56;
+            // Set minimum clues (hard difficulty)
+            let minClues = 25;
             
-            // Remove cells one by one, ensuring the puzzle remains uniquely solvable
-            for (let i = 0; i < cellsToRemove && i < positions.length; i++) {
-                const { row, col } = positions[i];
+            // Current clue count starts at 81 (full board)
+            let currentClues = 81;
+            
+            // Show status that we're generating
+            showStatus("Generating a challenging puzzle...", false);
+            
+            // Try to remove cells while maintaining a unique solution
+            for (const { row, col } of positions) {
+                // Stop if we've reached the minimum clue count
+                if (currentClues <= minClues) {
+                    break;
+                }
+                
+                // Remember the current value
                 const temp = board[row][col];
+                
+                // Try removing this cell
                 board[row][col] = 0;
                 initialCells[row][col] = false;
+                currentClues--;
                 
-                // If removing this cell makes the puzzle have multiple solutions,
-                // put the number back
+                // Check if the puzzle still has a unique solution
                 if (!hasUniqueSolution()) {
+                    // If not, restore the cell
                     board[row][col] = temp;
                     initialCells[row][col] = true;
+                    currentClues++;
                 }
             }
             
-            // NEW: Store initial board for restart feature
+            // Store initial board for restart feature
             initialBoard = {
                 board: JSON.parse(JSON.stringify(board)),
                 initialCells: JSON.parse(JSON.stringify(initialCells))
@@ -1121,36 +1272,12 @@
             
             // Reset current game hint tracking
             stats.currentGameUsedHint = false;
-        }
-        
-        // Check if the puzzle has a unique solution
-        // (This is a simplified version that just verifies one solution exists)
-        function hasUniqueSolution() {
-            const tempBoard = JSON.parse(JSON.stringify(board));
-            return solveBoard(tempBoard);
-        }
-        
-        // Solve a given board using backtracking
-        function solveBoard(grid) {
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (grid[row][col] === 0) {
-                        for (let num = 1; num <= 9; num++) {
-                            if (isValidPlace(grid, row, col, num)) {
-                                grid[row][col] = num;
-                                
-                                if (solveBoard(grid)) {
-                                    return true;
-                                }
-                                
-                                grid[row][col] = 0;
-                            }
-                        }
-                        return false;
-                    }
-                }
-            }
-            return true;
+            
+            // Calculate generation time
+            puzzleGenerationTime = (performance.now() - startTime) / 1000;
+            cluesCount = currentClues;
+            
+            console.log(`Generated puzzle with ${cluesCount} clues in ${puzzleGenerationTime.toFixed(2)} seconds`);
         }
         
         // Check if a number can be placed in a cell
@@ -1184,25 +1311,31 @@
             hintsRemaining = 3;
             updateHintButton();
             
-            // Generate a new puzzle
-            generateSolution();
-            createPuzzle('hard');
-            updateBoard();
+            // Show generating message 
+            showStatus("Generating a unique puzzle...", false);
             
-            // Reset selected cell
-            if (selectedCell) {
-                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
-                selectedCell = null;
-            }
-            
-            // Clear highlights
-            clearHighlights();
-            
-            // Show message
-            showStatus("New case file opened, Detective.", false);
-            
-            // Save game state
-            saveCurrentGame();
+            // Use setTimeout to allow the UI to update before heavy computation
+            setTimeout(() => {
+                // Generate a new puzzle
+                generateSolution();
+                createPuzzle('hard');
+                updateBoard();
+                
+                // Reset selected cell
+                if (selectedCell) {
+                    selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                    selectedCell = null;
+                }
+                
+                // Clear highlights
+                clearHighlights();
+                
+                // Show message with generation info
+                showStatus("Think you got what it takes, Detective?", false);
+                
+                // Save game state
+                saveCurrentGame();
+            }, 50);
         }
         
         // Check the current solution
