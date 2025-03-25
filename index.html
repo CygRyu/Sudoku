@@ -99,6 +99,31 @@
             color: #FF5252 !important;
         }
         
+        /* Completed region styles */
+        .row-complete {
+            background-color: rgba(0, 200, 0, 0.15) !important;
+        }
+        
+        .col-complete {
+            background-color: rgba(0, 200, 0, 0.15) !important;
+        }
+        
+        .box-complete {
+            background-color: rgba(0, 200, 0, 0.15) !important;
+        }
+        
+        .dark .row-complete,
+        .dark .col-complete,
+        .dark .box-complete {
+            background-color: rgba(0, 200, 0, 0.1) !important;
+        }
+        
+        /* Make sure selection and conflict states take precedence */
+        .cell.cell-selected,
+        .cell.cell-conflict {
+            z-index: 2;
+        }
+        
         /* Modal styles */
         .modal {
             display: none;
@@ -183,7 +208,7 @@
         
         <!-- Game Status Message -->
         <div id="status" class="bg-gray-200 dark:bg-gray-800 text-center py-2 font-bold text-gray-800 dark:text-batman-yellow">
-            Ready to solve Gotham's puzzles?
+            Ready to solve the city's puzzles?
         </div>
         
         <!-- Grid Size Controls -->
@@ -515,6 +540,10 @@
                     cell.dataset.row = row;
                     cell.dataset.col = col;
                     
+                    // Set the box data attribute for region completion tracking
+                    const boxIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+                    cell.dataset.box = boxIndex;
+                    
                     cell.addEventListener('click', () => selectCell(cell));
                     
                     sudokuBoard.appendChild(cell);
@@ -648,6 +677,9 @@
             
             // Check for conflicts after updating values
             checkForConflicts();
+            
+            // Check for completed regions
+            checkCompletedRegions();
         }
         
         // Check for conflicts in rows, columns and boxes
@@ -723,6 +755,132 @@
                                 }
                                 boxValues[value] = true;
                             }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // NEW FUNCTION: Check for completed regions (rows, columns, boxes)
+        function checkCompletedRegions() {
+            // Remove all completion classes
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('row-complete', 'col-complete', 'box-complete');
+            });
+            
+            // Check rows
+            for (let row = 0; row < 9; row++) {
+                // Check if row is complete and correct
+                let isRowComplete = true;
+                let hasConflict = false;
+                
+                // Check if all cells are filled
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        isRowComplete = false;
+                        break;
+                    }
+                }
+                
+                // Check if row has no conflicts and matches solution
+                if (isRowComplete) {
+                    for (let col = 0; col < 9; col++) {
+                        if (board[row][col] !== solution[row][col]) {
+                            hasConflict = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If row is complete and correct, highlight it
+                if (isRowComplete && !hasConflict) {
+                    for (let col = 0; col < 9; col++) {
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('row-complete');
+                    }
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 9; col++) {
+                // Check if column is complete and correct
+                let isColComplete = true;
+                let hasConflict = false;
+                
+                // Check if all cells are filled
+                for (let row = 0; row < 9; row++) {
+                    if (board[row][col] === 0) {
+                        isColComplete = false;
+                        break;
+                    }
+                }
+                
+                // Check if column has no conflicts and matches solution
+                if (isColComplete) {
+                    for (let row = 0; row < 9; row++) {
+                        if (board[row][col] !== solution[row][col]) {
+                            hasConflict = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If column is complete and correct, highlight it
+                if (isColComplete && !hasConflict) {
+                    for (let row = 0; row < 9; row++) {
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('col-complete');
+                    }
+                }
+            }
+            
+            // Check boxes
+            for (let boxIndex = 0; boxIndex < 9; boxIndex++) {
+                const boxRow = Math.floor(boxIndex / 3) * 3;
+                const boxCol = (boxIndex % 3) * 3;
+                
+                // Check if box is complete and correct
+                let isBoxComplete = true;
+                let hasConflict = false;
+                
+                // Check if all cells are filled
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        const row = boxRow + r;
+                        const col = boxCol + c;
+                        
+                        if (board[row][col] === 0) {
+                            isBoxComplete = false;
+                            break;
+                        }
+                    }
+                    if (!isBoxComplete) break;
+                }
+                
+                // Check if box has no conflicts and matches solution
+                if (isBoxComplete) {
+                    for (let r = 0; r < 3; r++) {
+                        for (let c = 0; c < 3; c++) {
+                            const row = boxRow + r;
+                            const col = boxCol + c;
+                            
+                            if (board[row][col] !== solution[row][col]) {
+                                hasConflict = true;
+                                break;
+                            }
+                        }
+                        if (hasConflict) break;
+                    }
+                }
+                
+                // If box is complete and correct, highlight it
+                if (isBoxComplete && !hasConflict) {
+                    for (let r = 0; r < 3; r++) {
+                        for (let c = 0; c < 3; c++) {
+                            const row = boxRow + r;
+                            const col = boxCol + c;
+                            const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                            cell.classList.add('box-complete');
                         }
                     }
                 }
