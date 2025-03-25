@@ -90,6 +90,35 @@
             color: #aaa;
         }
         
+        .pencil-mark-conflict {
+            color: #FF0000 !important;
+            font-weight: bold;
+        }
+        
+        .dark .pencil-mark-conflict {
+            color: #FF5252 !important;
+            font-weight: bold;
+        }
+        
+        /* Locked correct cell */
+        .cell-correct {
+            background-color: rgba(0, 200, 0, 0.05) !important;
+            position: relative;
+        }
+        
+        .cell-correct::after {
+            content: "✓";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 8px;
+            color: #22C55E;
+        }
+        
+        .dark .cell-correct::after {
+            color: #22C55E;
+        }
+        
         /* Dark mode styles */
         .dark .cell-selected {
             box-shadow: 0 0 0 2px #FFCC00;
@@ -280,6 +309,9 @@
         <div class="p-3 sm:p-4 bg-gray-200 dark:bg-gray-800 flex flex-wrap justify-between gap-2">
             <button id="new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-yellow-400 transition">
                 NEW PUZZLE
+            </button>
+            <button id="restart-btn" class="bg-orange-500 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-orange-600 transition">
+                RESTART
             </button>
             <button id="hint-btn" class="bg-gray-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-gray-500 transition">
                 HINT
@@ -499,6 +531,8 @@
         let highlightRowColBox = true;
         let highlightSameNumbers = true;
         let gridScale = 100; // Default grid scale in percentage
+        let correctCells = Array(9).fill().map(() => Array(9).fill(false)); // Track cells with correct values
+        let initialBoard = null; // Store initial board for restart feature
         
         // Auto-save variables
         let autoSaveEnabled = true;
@@ -638,9 +672,18 @@
                 const col = parseInt(cell.dataset.col);
                 const value = board[row][col];
                 
-                // Reset cell content
+                // Reset cell content and classes
                 cell.innerHTML = '';
-                cell.classList.remove('text-blue-600', 'text-black', 'dark:text-white', 'dark:text-batman-yellow', 'font-bold', 'cell-conflict');
+                cell.classList.remove(
+                    'text-blue-600', 'text-black', 'dark:text-white', 
+                    'dark:text-batman-yellow', 'font-bold', 'cell-conflict',
+                    'cell-correct'
+                );
+                
+                // Add correct cell class if applicable
+                if (correctCells[row][col]) {
+                    cell.classList.add('cell-correct');
+                }
                 
                 if (value !== 0) {
                     // Display the value
@@ -664,9 +707,16 @@
                         for (let num = 1; num <= 9; num++) {
                             const markSpan = document.createElement('div');
                             markSpan.classList.add('pencil-mark');
+                            
                             if (cellPencilMarks[num-1]) {
                                 markSpan.textContent = num;
+                                
+                                // NEW: Check if this pencil mark would create a conflict
+                                if (wouldCreateConflict(row, col, num)) {
+                                    markSpan.classList.add('pencil-mark-conflict');
+                                }
                             }
+                            
                             marksContainer.appendChild(markSpan);
                         }
                         
@@ -680,6 +730,53 @@
             
             // Check for completed regions
             checkCompletedRegions();
+            
+            // NEW: Check for correct cells
+            checkCorrectCells();
+        }
+        
+        // NEW: Check if a number would create a conflict in row, column, or box
+        function wouldCreateConflict(row, col, num) {
+            // Check row
+            for (let c = 0; c < 9; c++) {
+                if (c !== col && board[row][c] === num) {
+                    return true;
+                }
+            }
+            
+            // Check column
+            for (let r = 0; r < 9; r++) {
+                if (r !== row && board[r][col] === num) {
+                    return true;
+                }
+            }
+            
+            // Check box
+            const boxRowStart = Math.floor(row / 3) * 3;
+            const boxColStart = Math.floor(col / 3) * 3;
+            
+            for (let r = boxRowStart; r < boxRowStart + 3; r++) {
+                for (let c = boxColStart; c < boxColStart + 3; c++) {
+                    if ((r !== row || c !== col) && board[r][c] === num) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // NEW: Check for correct cells and mark them
+        function checkCorrectCells() {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    // Only check user-entered (non-initial) cells with values
+                    if (!initialCells[row][col] && board[row][col] !== 0) {
+                        // If cell value matches solution, mark it as correct
+                        correctCells[row][col] = (board[row][col] === solution[row][col]);
+                    }
+                }
+            }
         }
         
         // Check for conflicts in rows, columns and boxes
@@ -761,7 +858,7 @@
             }
         }
         
-        // NEW FUNCTION: Check for completed regions (rows, columns, boxes)
+        // Check for completed regions (rows, columns, boxes)
         function checkCompletedRegions() {
             // Remove all completion classes
             document.querySelectorAll('.cell').forEach(cell => {
@@ -982,6 +1079,9 @@
             // Reset pencil marks
             pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
             
+            // Reset correct cells
+            correctCells = Array(9).fill().map(() => Array(9).fill(false));
+            
             // Get all cell positions
             const positions = [];
             for (let row = 0; row < 9; row++) {
@@ -1010,6 +1110,12 @@
                     initialCells[row][col] = true;
                 }
             }
+            
+            // NEW: Store initial board for restart feature
+            initialBoard = {
+                board: JSON.parse(JSON.stringify(board)),
+                initialCells: JSON.parse(JSON.stringify(initialCells))
+            };
             
             // Reset current game hint tracking
             stats.currentGameUsedHint = false;
@@ -1092,6 +1198,47 @@
             
             // Show message
             showStatus("New case file opened, Detective.", false);
+            
+            // Save game state
+            saveCurrentGame();
+        }
+        
+        // NEW: Restart the current puzzle
+        function restartPuzzle() {
+            if (!initialBoard) {
+                showStatus("No puzzle to restart!", true);
+                return;
+            }
+            
+            // Reset board to initial state
+            board = JSON.parse(JSON.stringify(initialBoard.board));
+            initialCells = JSON.parse(JSON.stringify(initialBoard.initialCells));
+            
+            // Reset pencil marks
+            pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+            
+            // Reset correct cells
+            correctCells = Array(9).fill().map(() => Array(9).fill(false));
+            
+            // Reset hints
+            hintsRemaining = 3;
+            updateHintButton();
+            
+            // Reset selected cell
+            if (selectedCell) {
+                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                selectedCell = null;
+            }
+            
+            // Reset hint tracking
+            stats.currentGameUsedHint = false;
+            
+            // Update UI
+            updateBoard();
+            clearHighlights();
+            
+            // Show message
+            showStatus("Puzzle restarted. Time for a fresh approach!", false);
             
             // Save game state
             saveCurrentGame();
@@ -1190,6 +1337,12 @@
         
         // Set a cell's value (normal mode)
         function setCellValue(row, col, value) {
+            // NEW: Check if cell is correct and should be locked
+            if (correctCells[row][col]) {
+                showStatus("This cell is correct and locked! Try another cell.", true);
+                return;
+            }
+            
             // Clear pencil marks when setting a value
             pencilMarks[row][col] = Array(9).fill(false);
             
@@ -1312,6 +1465,8 @@
                 solution: solution,
                 hintsRemaining: hintsRemaining,
                 pencilMarks: pencilMarks,
+                correctCells: correctCells,
+                initialBoard: initialBoard,
                 timestamp: new Date().toISOString(),
                 gridScale: gridScale
             };
@@ -1346,6 +1501,18 @@
                         pencilMarks = gameData.pencilMarks;
                     }
                     
+                    // NEW: Handle correct cells
+                    if (gameData.correctCells) {
+                        correctCells = gameData.correctCells;
+                    } else {
+                        correctCells = Array(9).fill().map(() => Array(9).fill(false));
+                    }
+                    
+                    // NEW: Handle initial board for restart
+                    if (gameData.initialBoard) {
+                        initialBoard = gameData.initialBoard;
+                    }
+                    
                     // Handle grid scale
                     if (gameData.gridScale) {
                         setGridScale(gameData.gridScale);
@@ -1376,6 +1543,8 @@
                 solution: solution,
                 hintsRemaining: hintsRemaining,
                 pencilMarks: pencilMarks,
+                correctCells: correctCells,
+                initialBoard: initialBoard,
                 timestamp: new Date().toISOString(),
                 gridScale: gridScale
             };
@@ -1425,6 +1594,12 @@
                         solution = gameData.solution;
                         hintsRemaining = gameData.hintsRemaining;
                         pencilMarks = gameData.pencilMarks || Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+                        
+                        // NEW: Handle correct cells
+                        correctCells = gameData.correctCells || Array(9).fill().map(() => Array(9).fill(false));
+                        
+                        // NEW: Handle initial board for restart
+                        initialBoard = gameData.initialBoard;
                         
                         // Handle grid scale
                         if (gameData.gridScale) {
@@ -1709,6 +1884,8 @@
                 solution: solution,
                 hintsRemaining: hintsRemaining,
                 pencilMarks: pencilMarks,
+                correctCells: correctCells,
+                initialBoard: initialBoard,
                 stats: stats
             };
             
@@ -1737,6 +1914,18 @@
                     pencilMarks = puzzleData.pencilMarks;
                 } else {
                     pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
+                }
+                
+                // Handle correct cells (optional in older saves)
+                if (puzzleData.correctCells) {
+                    correctCells = puzzleData.correctCells;
+                } else {
+                    correctCells = Array(9).fill().map(() => Array(9).fill(false));
+                }
+                
+                // Handle initial board for restart (optional in older saves)
+                if (puzzleData.initialBoard) {
+                    initialBoard = puzzleData.initialBoard;
                 }
                 
                 // Handle stats (optional in older saves)
@@ -1869,6 +2058,12 @@
                         return;
                     }
                     
+                    // NEW: Check if cell is correct and should be locked
+                    if (correctCells[row][col]) {
+                        showStatus("This cell is correct and locked! Try another cell.", true);
+                        return;
+                    }
+                    
                     const num = parseInt(button.dataset.num);
                     
                     if (isPencilMode) {
@@ -1893,6 +2088,12 @@
                 
                 if (initialCells[row][col]) {
                     showStatus("Can't change initial clues!", true);
+                    return;
+                }
+                
+                // NEW: Check if cell is correct and should be locked
+                if (correctCells[row][col]) {
+                    showStatus("This cell is correct and locked! Try another cell.", true);
                     return;
                 }
                 
@@ -1956,6 +2157,9 @@
             
             // New game button
             document.getElementById('new-game-btn').addEventListener('click', newGame);
+            
+            // NEW: Restart button
+            document.getElementById('restart-btn').addEventListener('click', restartPuzzle);
             
             // Check button
             document.getElementById('check-btn').addEventListener('click', checkSolution);
@@ -2116,6 +2320,9 @@
                 
                 if (initialCells[row][col]) return;
                 
+                // NEW: Check if cell is correct and locked
+                if (correctCells[row][col] && !isPencilMode) return;
+                
                 if (e.key >= '1' && e.key <= '9') {
                     const num = parseInt(e.key);
                     if (isPencilMode) {
@@ -2126,7 +2333,8 @@
                 } else if (e.key === 'Backspace' || e.key === 'Delete') {
                     if (isPencilMode) {
                         pencilMarks[row][col] = Array(9).fill(false);
-                    } else {
+                    } else if (!correctCells[row][col]) {
+                        // Only delete if not a correct cell
                         board[row][col] = 0;
                     }
                     updateBoard();
