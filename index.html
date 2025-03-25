@@ -298,9 +298,6 @@
             <button id="new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-yellow-400 transition">
                 NEW PUZZLE
             </button>
-            <button id="restart-btn" class="bg-orange-500 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-orange-600 transition">
-                RESTART
-            </button>
             <button id="hint-btn" class="bg-gray-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-gray-500 transition">
                 HINT
             </button>
@@ -1203,47 +1200,6 @@
             
             // Show message
             showStatus("New case file opened, Detective.", false);
-            
-            // Save game state
-            saveCurrentGame();
-        }
-        
-        // NEW: Restart the current puzzle
-        function restartPuzzle() {
-            if (!initialBoard) {
-                showStatus("No puzzle to restart!", true);
-                return;
-            }
-            
-            // Reset board to initial state
-            board = JSON.parse(JSON.stringify(initialBoard.board));
-            initialCells = JSON.parse(JSON.stringify(initialBoard.initialCells));
-            
-            // Reset pencil marks
-            pencilMarks = Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
-            
-            // Reset correct cells
-            correctCells = Array(9).fill().map(() => Array(9).fill(false));
-            
-            // Reset hints
-            hintsRemaining = 3;
-            updateHintButton();
-            
-            // Reset selected cell
-            if (selectedCell) {
-                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
-                selectedCell = null;
-            }
-            
-            // Reset hint tracking
-            stats.currentGameUsedHint = false;
-            
-            // Update UI
-            updateBoard();
-            clearHighlights();
-            
-            // Show message
-            showStatus("Puzzle restarted. Time for a fresh approach!", false);
             
             // Save game state
             saveCurrentGame();
@@ -2178,9 +2134,6 @@
             
             // New game button
             document.getElementById('new-game-btn').addEventListener('click', newGame);
-            
-            // NEW: Restart button
-            document.getElementById('restart-btn').addEventListener('click', restartPuzzle);
             
             // Check button
             document.getElementById('check-btn').addEventListener('click', checkSolution);
