@@ -274,18 +274,6 @@
                 </div>
             </div>
             
-            <!-- Highlight Options -->
-            <div class="flex justify-center gap-2 mb-3">
-                <label class="flex items-center cursor-pointer text-sm">
-                    <input type="checkbox" id="highlight-row-col-box" class="mr-1 h-4 w-4" checked>
-                    <span>Highlight Row/Col/Box</span>
-                </label>
-                <label class="flex items-center cursor-pointer text-sm">
-                    <input type="checkbox" id="highlight-same-numbers" class="mr-1 h-4 w-4" checked>
-                    <span>Highlight Same Numbers</span>
-                </label>
-            </div>
-            
             <!-- Number Buttons -->
             <div class="grid grid-cols-5 gap-2">
                 <button class="number-btn col-span-1 bg-batman-yellow text-batman-black font-bold text-xl h-10 rounded shadow hover:bg-yellow-400 transition" data-num="1">1</button>
@@ -437,6 +425,23 @@
                     </svg>
                 </button>
             </div>
+            
+            <!-- Gameplay Settings (New Section) -->
+            <div class="mb-4">
+                <h4 class="font-bold mb-2 dark:text-batman-yellow">Gameplay Settings</h4>
+                <div class="space-y-2">
+                    <label class="flex items-center cursor-pointer text-sm">
+                        <input type="checkbox" id="highlight-row-col-box" class="mr-2 h-4 w-4" checked>
+                        <span>Highlight Row/Col/Box</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer text-sm">
+                        <input type="checkbox" id="highlight-same-numbers" class="mr-2 h-4 w-4" checked>
+                        <span>Highlight Same Numbers</span>
+                    </label>
+                </div>
+            </div>
+            
+            <hr class="border-gray-300 dark:border-gray-600 my-4">
             
             <!-- Auto-save Settings -->
             <div class="mb-4">
@@ -1367,7 +1372,7 @@
                 }
             }
             
-            // Clear column pencil marks
+            // Check column pencil marks
             for (let r = 0; r < 9; r++) {
                 if (r !== row && board[r][col] === 0) {
                     pencilMarks[r][col][valueIndex] = false;
@@ -1789,7 +1794,9 @@
             try {
                 const settings = {
                     autoSaveEnabled,
-                    gridScale
+                    gridScale,
+                    highlightRowColBox,
+                    highlightSameNumbers
                 };
                 
                 localStorage.setItem('sudokuSettings', JSON.stringify(settings));
@@ -1812,6 +1819,16 @@
                     
                     if (settings.gridScale !== undefined) {
                         setGridScale(settings.gridScale);
+                    }
+                    
+                    if (settings.highlightRowColBox !== undefined) {
+                        highlightRowColBox = settings.highlightRowColBox;
+                        document.getElementById('highlight-row-col-box').checked = highlightRowColBox;
+                    }
+                    
+                    if (settings.highlightSameNumbers !== undefined) {
+                        highlightSameNumbers = settings.highlightSameNumbers;
+                        document.getElementById('highlight-same-numbers').checked = highlightSameNumbers;
                     }
                     
                     return true;
@@ -2029,6 +2046,8 @@
         function showSettings() {
             // Update UI to match current settings
             document.getElementById('auto-save-toggle').checked = autoSaveEnabled;
+            document.getElementById('highlight-row-col-box').checked = highlightRowColBox;
+            document.getElementById('highlight-same-numbers').checked = highlightSameNumbers;
             
             // Show modal
             document.getElementById('settings-modal').style.display = 'flex';
@@ -2120,7 +2139,7 @@
                 updateModeButtons();
             });
             
-            // Highlight toggle checkboxes
+            // Highlight toggle checkboxes (moved to settings)
             document.getElementById('highlight-row-col-box').addEventListener('change', (e) => {
                 highlightRowColBox = e.target.checked;
                 if (selectedCell) {
@@ -2136,6 +2155,7 @@
                         highlightSameNumber(board[row][col]);
                     }
                 }
+                saveSettings();
             });
             
             document.getElementById('highlight-same-numbers').addEventListener('change', (e) => {
@@ -2153,6 +2173,7 @@
                         highlightSameNumber(board[row][col]);
                     }
                 }
+                saveSettings();
             });
             
             // New game button
