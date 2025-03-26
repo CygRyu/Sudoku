@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +41,7 @@
         }
         
         .cell-conflict {
-            color: #FF0000 !important;
+            color: #FF5252 !important;
             animation: pulse 1s infinite;
         }
         
@@ -53,19 +53,28 @@
         
         /* Cell highlighting */
         .cell-highlighted {
-            background-color: rgba(255, 204, 0, 0.1) !important;
-        }
-        
-        .dark .cell-highlighted {
             background-color: rgba(255, 204, 0, 0.07) !important;
         }
         
         .cell-same-number {
-            background-color: rgba(0, 128, 255, 0.1) !important;
+            background-color: rgba(0, 128, 255, 0.07) !important;
         }
         
-        .dark .cell-same-number {
-            background-color: rgba(0, 128, 255, 0.07) !important;
+        /* Number highlighting for placement */
+        .cell-valid-placement {
+            background-color: rgba(0, 200, 0, 0.07) !important;
+        }
+        
+        .cell-invalid-placement {
+            background-color: rgba(255, 0, 0, 0.03) !important;
+        }
+        
+        /* Completed number styling */
+        .number-btn.number-completed {
+            background-color: #505050 !important;
+            color: #909090 !important;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
         
         /* Pencil marks */
@@ -83,19 +92,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
-        }
-        
-        .dark .pencil-mark {
             color: #aaa;
         }
         
         .pencil-mark-conflict {
-            color: #FF0000 !important;
-            font-weight: bold;
-        }
-        
-        .dark .pencil-mark-conflict {
             color: #FF5252 !important;
             font-weight: bold;
         }
@@ -115,35 +115,10 @@
             color: #22C55E;
         }
         
-        .dark .cell-correct::after {
-            color: #22C55E;
-        }
-        
-        /* Dark mode styles */
-        .dark .cell-selected {
-            box-shadow: 0 0 0 2px #FFCC00;
-        }
-        
-        .dark .cell-conflict {
-            color: #FF5252 !important;
-        }
-        
         /* Completed region styles */
-        .row-complete {
-            background-color: rgba(0, 200, 0, 0.15) !important;
-        }
-        
-        .col-complete {
-            background-color: rgba(0, 200, 0, 0.15) !important;
-        }
-        
+        .row-complete,
+        .col-complete,
         .box-complete {
-            background-color: rgba(0, 200, 0, 0.15) !important;
-        }
-        
-        .dark .row-complete,
-        .dark .col-complete,
-        .dark .box-complete {
             background-color: rgba(0, 200, 0, 0.1) !important;
         }
         
@@ -210,11 +185,11 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-100 dark:bg-batman-gray dark:text-white bg-gotham-city p-4 flex flex-col items-center">
+<body class="min-h-screen bg-batman-gray text-white bg-gotham-city p-4 flex flex-col items-center">
     <!-- Batman App Container -->
-    <div class="w-full max-w-md mx-auto bg-white dark:bg-batman-black rounded-lg shadow-xl overflow-hidden">
+    <div class="w-full max-w-md mx-auto bg-batman-black rounded-lg shadow-xl overflow-hidden">
         <!-- Header with Batman Logo -->
-        <div class="relative bg-batman-yellow dark:bg-batman-yellow py-4 px-6 flex justify-center items-center">
+        <div class="relative bg-batman-yellow py-4 px-6 flex justify-center items-center">
             <div class="absolute left-4 bat-signal">
                 <svg width="36" height="20" viewBox="0 0 36 20" fill="black">
                     <path d="M18,0 C12,0 7,3 4,8 C3,10 3,12 4,14 C7,19 12,22 18,22 C24,22 29,19 32,14 C33,12 33,10 32,8 C29,3 24,0 18,0 Z M18,4 C22,4 25,6 27,9 C28,11 28,13 27,15 C25,18 22,20 18,20 C14,20 11,18 9,15 C8,13 8,11 9,9 C11,6 14,4 18,4 Z M12,10 C12,10 13,14 18,14 C23,14 24,10 24,10 C24,10 21,12 18,12 C15,12 12,10 12,10 Z"/>
@@ -236,20 +211,20 @@
         </div>
         
         <!-- Game Status Message -->
-        <div id="status" class="bg-gray-200 dark:bg-gray-800 text-center py-2 font-bold text-gray-800 dark:text-batman-yellow">
+        <div id="status" class="bg-gray-800 text-center py-2 font-bold text-batman-yellow">
             Ready to solve the city's puzzles?
         </div>
         
         <!-- Grid Size Controls -->
-        <div class="bg-gray-100 dark:bg-gray-900 py-2 px-4 flex justify-center">
+        <div class="bg-gray-900 py-2 px-4 flex justify-center">
             <div class="zoom-controls">
-                <button id="zoom-out" class="bg-gray-300 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-600 transition">
+                <button id="zoom-out" class="bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-600 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
                     </svg>
                 </button>
                 <span id="grid-size-display" class="grid-size-display">100%</span>
-                <button id="zoom-in" class="bg-gray-300 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-600 transition">
+                <button id="zoom-in" class="bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center hover:bg-gray-600 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
@@ -265,12 +240,12 @@
         </div>
         
         <!-- Game Controls -->
-        <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900">
+        <div class="p-3 sm:p-4 bg-gray-900">
             <!-- Input Modes -->
             <div class="flex justify-center mb-2">
-                <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded">
+                <div class="flex bg-gray-700 p-1 rounded">
                     <button id="normal-mode-btn" class="px-3 py-1 rounded bg-batman-yellow text-batman-black font-bold text-sm">Normal</button>
-                    <button id="pencil-mode-btn" class="px-3 py-1 rounded text-gray-700 dark:text-gray-300 font-bold text-sm">Pencil Mark</button>
+                    <button id="pencil-mode-btn" class="px-3 py-1 rounded text-gray-300 font-bold text-sm">Pencil Mark</button>
                 </div>
             </div>
             
@@ -294,7 +269,7 @@
         </div>
         
         <!-- Action Buttons -->
-        <div class="p-3 sm:p-4 bg-gray-200 dark:bg-gray-800 flex flex-wrap justify-between gap-2">
+        <div class="p-3 sm:p-4 bg-gray-800 flex flex-wrap justify-between gap-2">
             <button id="new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-yellow-400 transition">
                 NEW PUZZLE
             </button>
@@ -307,7 +282,7 @@
         </div>
         
         <!-- Share/Import Buttons -->
-        <div class="p-3 sm:p-4 bg-gray-100 dark:bg-gray-900 flex flex-wrap justify-between gap-2">
+        <div class="p-3 sm:p-4 bg-gray-900 flex flex-wrap justify-between gap-2">
             <button id="saved-games-btn" class="bg-purple-600 text-white px-4 py-2 rounded font-batman tracking-wide shadow hover:bg-purple-700 transition flex items-center justify-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -323,26 +298,26 @@
         </div>
         
         <!-- Footer -->
-        <div class="text-center py-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-900">
+        <div class="text-center py-2 text-xs text-gray-400 bg-gray-900">
             Developed by CygRyu
         </div>
     </div>
 
     <!-- Share Modal -->
     <div id="share-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Share Puzzle</h3>
-                <button id="close-share-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Share Puzzle</h3>
+                <button id="close-share-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <p class="mb-4 dark:text-gray-300">Copy this code to share the current puzzle:</p>
+            <p class="mb-4 text-gray-300">Copy this code to share the current puzzle:</p>
             <div class="relative">
-                <input id="share-code" type="text" readonly class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm font-mono" />
-                <button id="copy-btn" class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <input id="share-code" type="text" readonly class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 text-sm font-mono" />
+                <button id="copy-btn" class="absolute right-2 top-2 text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
@@ -354,17 +329,17 @@
 
     <!-- Import Modal -->
     <div id="import-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Import Puzzle</h3>
-                <button id="close-import-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Import Puzzle</h3>
+                <button id="close-import-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <p class="mb-4 dark:text-gray-300">Paste the puzzle code below:</p>
-            <input id="import-code" type="text" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-4 text-base" placeholder="Paste puzzle code here" />
+            <p class="mb-4 text-gray-300">Paste the puzzle code below:</p>
+            <input id="import-code" type="text" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 mb-4 text-base" placeholder="Paste puzzle code here" />
             <div class="flex justify-end">
                 <button id="import-submit-btn" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">Import</button>
             </div>
@@ -374,10 +349,10 @@
 
     <!-- Statistics Modal -->
     <div id="stats-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Detective Records</h3>
-                <button id="close-stats-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Detective Records</h3>
+                <button id="close-stats-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -386,21 +361,21 @@
             
             <!-- Player Name Input -->
             <div class="mb-4">
-                <label for="player-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Detective Name</label>
-                <input type="text" id="player-name" class="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-base" placeholder="Enter your detective name" />
+                <label for="player-name" class="block text-sm font-medium text-gray-300 mb-1">Detective Name</label>
+                <input type="text" id="player-name" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 text-base" placeholder="Enter your detective name" />
             </div>
             
             <!-- Statistics Panel -->
             <div class="mb-6">
-                <h4 class="font-bold mb-2 dark:text-batman-yellow">Statistics</h4>
+                <h4 class="font-bold mb-2 text-batman-yellow">Statistics</h4>
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Puzzles Solved</div>
-                        <div id="puzzles-solved" class="text-xl font-bold dark:text-white">0</div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-sm text-gray-400">Puzzles Solved</div>
+                        <div id="puzzles-solved" class="text-xl font-bold text-white">0</div>
                     </div>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">No Hint Solves</div>
-                        <div id="no-hint-solves" class="text-xl font-bold dark:text-white">0</div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-sm text-gray-400">No Hint Solves</div>
+                        <div id="no-hint-solves" class="text-xl font-bold text-white">0</div>
                     </div>
                 </div>
             </div>
@@ -413,10 +388,10 @@
     
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Game Settings</h3>
-                <button id="close-settings-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Game Settings</h3>
+                <button id="close-settings-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -425,7 +400,7 @@
             
             <!-- Gameplay Settings (New Section) -->
             <div class="mb-4">
-                <h4 class="font-bold mb-2 dark:text-batman-yellow">Gameplay Settings</h4>
+                <h4 class="font-bold mb-2 text-batman-yellow">Gameplay Settings</h4>
                 <div class="space-y-2">
                     <label class="flex items-center cursor-pointer text-sm">
                         <input type="checkbox" id="highlight-row-col-box" class="mr-2 h-4 w-4" checked>
@@ -438,11 +413,11 @@
                 </div>
             </div>
             
-            <hr class="border-gray-300 dark:border-gray-600 my-4">
+            <hr class="border-gray-600 my-4">
             
             <!-- Auto-save Settings -->
             <div class="mb-4">
-                <h4 class="font-bold mb-2 dark:text-batman-yellow">Save Settings</h4>
+                <h4 class="font-bold mb-2 text-batman-yellow">Save Settings</h4>
                 <label class="flex items-center cursor-pointer text-sm mb-2">
                     <input type="checkbox" id="auto-save-toggle" class="mr-2 h-4 w-4" checked>
                     <span>Auto-save game every 30 seconds</span>
@@ -461,27 +436,27 @@
                 </div>
             </div>
             
-            <hr class="border-gray-300 dark:border-gray-600 my-4">
+            <hr class="border-gray-600 my-4">
             
             <!-- Data Management -->
             <div class="mb-4">
-                <h4 class="font-bold mb-2 dark:text-batman-yellow">Data Management</h4>
+                <h4 class="font-bold mb-2 text-batman-yellow">Data Management</h4>
                 <div class="flex space-x-2">
                     <button id="clear-data-btn" class="bg-red-600 text-white px-3 py-1 rounded shadow hover:bg-red-700 transition text-sm">
                         Clear All Data
                     </button>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will delete all saved games and statistics</p>
+                <p class="text-xs text-gray-400 mt-1">This will delete all saved games and statistics</p>
             </div>
         </div>
     </div>
     
     <!-- Saved Games Modal -->
     <div id="saved-games-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Saved Games</h3>
-                <button id="close-saved-games-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Saved Games</h3>
+                <button id="close-saved-games-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -491,12 +466,12 @@
             <div class="mb-4">
                 <div id="saved-games-container" class="space-y-2 max-h-60 overflow-y-auto">
                     <!-- Saved games will be added here dynamically -->
-                    <p id="no-saved-games" class="text-center text-gray-500 dark:text-gray-400 py-4">No saved games found</p>
+                    <p id="no-saved-games" class="text-center text-gray-400 py-4">No saved games found</p>
                 </div>
             </div>
             
             <div class="flex justify-between mt-4">
-                <input type="text" id="save-game-name" class="flex-1 p-2 border rounded-l bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-base" placeholder="Name your save (optional)" />
+                <input type="text" id="save-game-name" class="flex-1 p-2 border rounded-l bg-gray-700 text-white border-gray-600 text-base" placeholder="Name your save (optional)" />
                 <button id="save-game-btn" class="bg-green-600 text-white px-3 py-2 rounded-r shadow hover:bg-green-700 transition">Save Current Game</button>
             </div>
         </div>
@@ -504,16 +479,16 @@
     
     <!-- New Game Confirmation Modal -->
     <div id="new-game-confirm-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Start New Puzzle?</h3>
-                <button id="close-new-game-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Start New Puzzle?</h3>
+                <button id="close-new-game-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <p class="mb-6 dark:text-gray-300">Starting a new puzzle will lose your current progress. Are you sure you want to continue?</p>
+            <p class="mb-6 text-gray-300">Starting a new puzzle will lose your current progress. Are you sure you want to continue?</p>
             <div class="flex justify-end space-x-3">
                 <button id="cancel-new-game-btn" class="bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">Cancel</button>
                 <button id="confirm-new-game-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded shadow hover:bg-yellow-400 transition">Start New Puzzle</button>
@@ -523,16 +498,16 @@
     
     <!-- Hint Confirmation Modal -->
     <div id="hint-confirm-modal" class="modal">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold dark:text-white">Use a Hint?</h3>
-                <button id="close-hint-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <h3 class="text-lg font-bold text-white">Use a Hint?</h3>
+                <button id="close-hint-modal" class="text-gray-400 hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <p class="mb-6 dark:text-gray-300">You have <span id="hints-remaining-display" class="font-bold text-batman-yellow"></span> hints left. Do you want to use one now?</p>
+            <p class="mb-6 text-gray-300">You have <span id="hints-remaining-display" class="font-bold text-batman-yellow"></span> hints left. Do you want to use one now?</p>
             <div class="flex justify-end space-x-3">
                 <button id="cancel-hint-btn" class="bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">Cancel</button>
                 <button id="confirm-hint-btn" class="bg-batman-yellow text-batman-black px-4 py-2 rounded shadow hover:bg-yellow-400 transition">Use Hint</button>
@@ -541,23 +516,11 @@
     </div>
     
     <!-- Save Notification -->
-    <div id="save-notification" class="dark:bg-gray-800 bg-gray-700 text-white px-4 py-2 rounded shadow-lg">
+    <div id="save-notification" class="bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
         Game auto-saved
     </div>
 
     <script>
-        // Dark mode detection
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        });
-
         // Game state variables
         let board = Array(9).fill().map(() => Array(9).fill(0));
         let solution = Array(9).fill().map(() => Array(9).fill(0));
@@ -573,6 +536,9 @@
         let gridScale = 100; // Default grid scale in percentage
         let correctCells = Array(9).fill().map(() => Array(9).fill(false)); // Track cells with correct values
         let initialBoard = null; // Store initial board for restart feature
+        let completedNumbers = Array(10).fill(false); // Track completed numbers (index 0 unused)
+        let isNumberHighlightMode = false; // Track if we're in number placement highlight mode
+        let highlightedNumber = null; // The currently highlighted number for placement
         
         // Auto-save variables
         let autoSaveEnabled = true;
@@ -602,17 +568,17 @@
                         'cell', 
                         'w-8', 'h-8', 'sm:w-9', 'sm:h-9', 
                         'flex', 'items-center', 'justify-center', 
-                        'bg-white', 'dark:bg-gray-700', 
+                        'bg-gray-700', 
                         'text-lg', 'font-bold', 'cursor-pointer',
                         'transition', 'duration-150'
                     );
                     
                     // Add box borders
                     if (row % 3 === 0 && row !== 0) {
-                        cell.classList.add('border-t-2', 'border-t-gray-900', 'dark:border-t-batman-yellow');
+                        cell.classList.add('border-t-2', 'border-t-batman-yellow');
                     }
                     if (col % 3 === 0 && col !== 0) {
-                        cell.classList.add('border-l-2', 'border-l-gray-900', 'dark:border-l-batman-yellow');
+                        cell.classList.add('border-l-2', 'border-l-batman-yellow');
                     }
                     
                     cell.dataset.row = row;
@@ -631,9 +597,16 @@
         
         // Select a cell
         function selectCell(cell) {
+            // Exit number highlight mode when a cell is selected
+            if (isNumberHighlightMode) {
+                clearAllHighlights();
+                isNumberHighlightMode = false;
+                highlightedNumber = null;
+            }
+            
             // Clear previous selection
             if (selectedCell) {
-                selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                selectedCell.classList.remove('cell-selected', 'bg-gray-600');
             }
             
             // Clear all highlights
@@ -641,7 +614,7 @@
             
             // Set new selection
             selectedCell = cell;
-            cell.classList.add('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+            cell.classList.add('cell-selected', 'bg-gray-600');
             
             // Apply highlighting based on settings
             const row = parseInt(cell.dataset.row);
@@ -660,6 +633,13 @@
         function clearHighlights() {
             document.querySelectorAll('.cell-highlighted, .cell-same-number').forEach(cell => {
                 cell.classList.remove('cell-highlighted', 'cell-same-number');
+            });
+        }
+        
+        // Clear all highlights including placement related ones
+        function clearAllHighlights() {
+            document.querySelectorAll('.cell-highlighted, .cell-same-number, .cell-valid-placement, .cell-invalid-placement').forEach(cell => {
+                cell.classList.remove('cell-highlighted', 'cell-same-number', 'cell-valid-placement', 'cell-invalid-placement');
             });
         }
         
@@ -707,6 +687,77 @@
             }
         }
         
+        // Highlight valid and invalid placement options for a number
+        function highlightPlacementOptions(num) {
+            clearAllHighlights();
+            
+            // First highlight existing instances of the number
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === num) {
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('cell-same-number');
+                        
+                        // Also mark all cells in same row, column, and box as invalid placement
+                        markInvalidPlacements(row, col);
+                    }
+                }
+            }
+            
+            // Mark remaining empty cells as either valid or invalid
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        
+                        // Skip cells that are already marked as invalid
+                        if (cell.classList.contains('cell-invalid-placement')) {
+                            continue;
+                        }
+                        
+                        // Check if this would be a valid placement
+                        if (isValidPlace(board, row, col, num)) {
+                            cell.classList.add('cell-valid-placement');
+                        } else {
+                            cell.classList.add('cell-invalid-placement');
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Mark cells in same row, column, and box as invalid for placement
+        function markInvalidPlacements(row, col) {
+            // Mark row cells as invalid
+            for (let c = 0; c < 9; c++) {
+                if (board[row][c] === 0) {
+                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${c}"]`);
+                    cell.classList.add('cell-invalid-placement');
+                }
+            }
+            
+            // Mark column cells as invalid
+            for (let r = 0; r < 9; r++) {
+                if (board[r][col] === 0) {
+                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${col}"]`);
+                    cell.classList.add('cell-invalid-placement');
+                }
+            }
+            
+            // Mark box cells as invalid
+            const boxRowStart = Math.floor(row / 3) * 3;
+            const boxColStart = Math.floor(col / 3) * 3;
+            
+            for (let r = boxRowStart; r < boxRowStart + 3; r++) {
+                for (let c = boxColStart; c < boxColStart + 3; c++) {
+                    if (board[r][c] === 0) {
+                        const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                        cell.classList.add('cell-invalid-placement');
+                    }
+                }
+            }
+        }
+        
         // Update the board display
         function updateBoard() {
             const cells = document.querySelectorAll('.cell');
@@ -719,8 +770,7 @@
                 // Reset cell content and classes
                 cell.innerHTML = '';
                 cell.classList.remove(
-                    'text-blue-600', 'text-black', 'dark:text-white', 
-                    'dark:text-batman-yellow', 'font-bold', 'cell-conflict',
+                    'text-white', 'text-batman-yellow', 'font-bold', 'cell-conflict',
                     'cell-correct'
                 );
                 
@@ -735,10 +785,10 @@
                     
                     if (initialCells[row][col]) {
                         // Initial cells
-                        cell.classList.add('text-black', 'dark:text-batman-yellow', 'font-bold');
+                        cell.classList.add('text-batman-yellow', 'font-bold');
                     } else {
                         // User entered cells
-                        cell.classList.add('text-blue-600', 'dark:text-white');
+                        cell.classList.add('text-white');
                     }
                 } else {
                     // Check if there are pencil marks for this cell
@@ -755,7 +805,7 @@
                             if (cellPencilMarks[num-1]) {
                                 markSpan.textContent = num;
                                 
-                                // NEW: Check if this pencil mark would create a conflict
+                                // Check if this pencil mark would create a conflict
                                 if (wouldCreateConflict(row, col, num)) {
                                     markSpan.classList.add('pencil-mark-conflict');
                                 }
@@ -775,11 +825,17 @@
             // Check for completed regions
             checkCompletedRegions();
             
-            // NEW: Check for correct cells
+            // Check for correct cells
             checkCorrectCells();
+            
+            // Check for completed numbers
+            checkCompletedNumbers();
+            
+            // Update number button status
+            updateNumberButtons();
         }
         
-        // NEW: Check if a number would create a conflict in row, column, or box
+        // Check if a number would create a conflict in row, column, or box
         function wouldCreateConflict(row, col, num) {
             // Check row
             for (let c = 0; c < 9; c++) {
@@ -810,7 +866,7 @@
             return false;
         }
         
-        // NEW: Check for correct cells and mark them
+        // Check for correct cells and mark them
         function checkCorrectCells() {
             for (let row = 0; row < 9; row++) {
                 for (let col = 0; col < 9; col++) {
@@ -821,6 +877,47 @@
                     }
                 }
             }
+        }
+        
+        // Check for completed numbers (all 9 instances placed correctly)
+        function checkCompletedNumbers() {
+            // Reset completion tracking
+            completedNumbers = Array(10).fill(false);
+            
+            // Count each number's correctly placed instances
+            for (let num = 1; num <= 9; num++) {
+                let correctCount = 0;
+                
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (board[row][col] === num && (initialCells[row][col] || correctCells[row][col])) {
+                            correctCount++;
+                        }
+                    }
+                }
+                
+                // If all 9 instances are placed correctly, mark as completed
+                if (correctCount === 9) {
+                    completedNumbers[num] = true;
+                }
+            }
+        }
+        
+        // Update number buttons based on completion status
+        function updateNumberButtons() {
+            const numberButtons = document.querySelectorAll('.number-btn');
+            
+            numberButtons.forEach(button => {
+                const num = parseInt(button.dataset.num);
+                
+                // Remove completion class if it's not completed
+                if (!completedNumbers[num]) {
+                    button.classList.remove('number-completed');
+                } else {
+                    // Add completion class if it's completed
+                    button.classList.add('number-completed');
+                }
+            });
         }
         
         // Check for conflicts in rows, columns and boxes
@@ -1112,7 +1209,7 @@
             return true;
         }
 
-        // NEW: Enhanced uniqueness checker
+        // Enhanced uniqueness checker
         function hasUniqueSolution() {
             // Clone the current board to avoid modifying it
             const tempBoard = JSON.parse(JSON.stringify(board));
@@ -1130,7 +1227,7 @@
             return !hasSecondSolution;
         }
 
-        // NEW: Find one solution to the board
+        // Find one solution to the board
         function findOneSolution(grid) {
             // Create a copy of the grid to store the solution
             const solution = JSON.parse(JSON.stringify(grid));
@@ -1149,7 +1246,7 @@
             return null; // No solution found
         }
 
-        // NEW: Find a second different solution
+        // Find a second different solution
         function findSecondSolution(grid, firstSolution) {
             // Create a copy of the grid to work with
             const workGrid = JSON.parse(JSON.stringify(grid));
@@ -1158,7 +1255,7 @@
             return solveForSecondSolution(workGrid, firstSolution);
         }
 
-        // NEW: Backtracking solver for first solution
+        // Backtracking solver for first solution
         function solveForOneSolution(grid) {
             // Find an empty cell
             let emptyCell = findEmptyCell(grid);
@@ -1187,7 +1284,7 @@
             return false; // No solution found with current grid
         }
 
-        // NEW: Backtracking solver for second solution
+        // Backtracking solver for second solution
         function solveForSecondSolution(grid, firstSolution) {
             // Find an empty cell
             let emptyCell = findEmptyCell(grid);
@@ -1217,7 +1314,7 @@
             return false; // No second solution found with current grid
         }
 
-        // NEW: Find an empty cell in the grid
+        // Find an empty cell in the grid
         function findEmptyCell(grid) {
             for (let row = 0; row < 9; row++) {
                 for (let col = 0; col < 9; col++) {
@@ -1229,7 +1326,7 @@
             return null; // No empty cells
         }
 
-        // NEW: Check if two solutions are different
+        // Check if two solutions are different
         function isDifferentSolution(grid1, grid2) {
             for (let row = 0; row < 9; row++) {
                 for (let col = 0; col < 9; col++) {
@@ -1257,6 +1354,9 @@
             
             // Reset correct cells
             correctCells = Array(9).fill().map(() => Array(9).fill(false));
+            
+            // Reset completed numbers
+            completedNumbers = Array(10).fill(false);
             
             // Get all cell positions
             const positions = [];
@@ -1366,12 +1466,16 @@
                 
                 // Reset selected cell
                 if (selectedCell) {
-                    selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                    selectedCell.classList.remove('cell-selected', 'bg-gray-600');
                     selectedCell = null;
                 }
                 
                 // Clear highlights
                 clearHighlights();
+                
+                // Reset number highlight mode
+                isNumberHighlightMode = false;
+                highlightedNumber = null;
                 
                 // Show message with generation info
                 showStatus("Think you got what it takes, Detective?", false);
@@ -1505,7 +1609,7 @@
         
         // Set a cell's value (normal mode)
         function setCellValue(row, col, value) {
-            // NEW: Check if cell is correct and should be locked
+            // Check if cell is correct and should be locked
             if (correctCells[row][col]) {
                 showStatus("This cell is correct and locked! Try another cell.", true);
                 return;
@@ -1517,14 +1621,14 @@
             // Set the cell value
             board[row][col] = value;
             
-            // ENHANCEMENT: Auto-remove related pencil marks with the same number
+            // Auto-remove related pencil marks with the same number
             clearRelatedPencilMarks(row, col, value);
             
             updateBoard();
             saveCurrentGame();
         }
         
-        // ENHANCEMENT: Clear related pencil marks with the same number
+        // Clear related pencil marks with the same number
         function clearRelatedPencilMarks(row, col, value) {
             const valueIndex = value - 1;
             
@@ -1568,16 +1672,16 @@
             
             if (isPencilMode) {
                 normalModeBtn.classList.remove('bg-batman-yellow', 'text-batman-black');
-                normalModeBtn.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                normalModeBtn.classList.add('bg-gray-600', 'text-gray-300');
                 
-                pencilModeBtn.classList.remove('text-gray-700', 'dark:text-gray-300');
+                pencilModeBtn.classList.remove('text-gray-300');
                 pencilModeBtn.classList.add('bg-batman-yellow', 'text-batman-black');
             } else {
-                normalModeBtn.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                normalModeBtn.classList.remove('bg-gray-600', 'text-gray-300');
                 normalModeBtn.classList.add('bg-batman-yellow', 'text-batman-black');
                 
                 pencilModeBtn.classList.remove('bg-batman-yellow', 'text-batman-black');
-                pencilModeBtn.classList.add('text-gray-700', 'dark:text-gray-300');
+                pencilModeBtn.classList.add('text-gray-300');
             }
         }
         
@@ -1586,7 +1690,7 @@
             document.getElementById('puzzles-solved').textContent = stats.puzzlesSolved;
             document.getElementById('no-hint-solves').textContent = stats.noHintSolves;
             
-            // ENHANCEMENT: Update player name field
+            // Update player name field
             const playerNameInput = document.getElementById('player-name');
             playerNameInput.value = stats.playerName || 'Detective';
         }
@@ -1597,17 +1701,17 @@
             statusEl.textContent = message;
             
             if (isError) {
-                statusEl.classList.remove('text-gray-800', 'dark:text-batman-yellow');
-                statusEl.classList.add('text-red-600', 'dark:text-red-400');
+                statusEl.classList.remove('text-batman-yellow');
+                statusEl.classList.add('text-red-400');
             } else {
-                statusEl.classList.remove('text-red-600', 'dark:text-red-400');
-                statusEl.classList.add('text-gray-800', 'dark:text-batman-yellow');
+                statusEl.classList.remove('text-red-400');
+                statusEl.classList.add('text-batman-yellow');
             }
             
             // Reset after delay
             setTimeout(() => {
-                statusEl.classList.remove('text-red-600', 'dark:text-red-400');
-                statusEl.classList.add('text-gray-800', 'dark:text-batman-yellow');
+                statusEl.classList.remove('text-red-400');
+                statusEl.classList.add('text-batman-yellow');
                 statusEl.textContent = "Solve the puzzle, save the city.";
             }, 3000);
         }
@@ -1621,7 +1725,7 @@
             return array;
         }
         
-        // ENHANCEMENT: Save current game state to localStorage
+        // Save current game state to localStorage
         function saveCurrentGame() {
             // Only save if auto-save is enabled
             if (!autoSaveEnabled) return;
@@ -1636,7 +1740,8 @@
                 correctCells: correctCells,
                 initialBoard: initialBoard,
                 timestamp: new Date().toISOString(),
-                gridScale: gridScale
+                gridScale: gridScale,
+                completedNumbers: completedNumbers // Save completed numbers state
             };
             
             try {
@@ -1651,7 +1756,7 @@
             }
         }
         
-        // ENHANCEMENT: Load current game state from localStorage
+        // Load current game state from localStorage
         function loadCurrentGame() {
             try {
                 const savedGame = localStorage.getItem('currentGame');
@@ -1669,16 +1774,23 @@
                         pencilMarks = gameData.pencilMarks;
                     }
                     
-                    // NEW: Handle correct cells
+                    // Handle correct cells
                     if (gameData.correctCells) {
                         correctCells = gameData.correctCells;
                     } else {
                         correctCells = Array(9).fill().map(() => Array(9).fill(false));
                     }
                     
-                    // NEW: Handle initial board for restart
+                    // Handle initial board for restart
                     if (gameData.initialBoard) {
                         initialBoard = gameData.initialBoard;
+                    }
+                    
+                    // Handle completed numbers
+                    if (gameData.completedNumbers) {
+                        completedNumbers = gameData.completedNumbers;
+                    } else {
+                        completedNumbers = Array(10).fill(false);
                     }
                     
                     // Handle grid scale
@@ -1699,7 +1811,7 @@
             return false;
         }
         
-        // ENHANCEMENT: Save game with name
+        // Save game with name
         function saveNamedGame(name) {
             const gameName = name || `Game ${new Date().toLocaleString()}`;
             
@@ -1714,7 +1826,8 @@
                 correctCells: correctCells,
                 initialBoard: initialBoard,
                 timestamp: new Date().toISOString(),
-                gridScale: gridScale
+                gridScale: gridScale,
+                completedNumbers: completedNumbers
             };
             
             try {
@@ -1745,7 +1858,7 @@
             }
         }
         
-        // ENHANCEMENT: Load a saved game
+        // Load a saved game
         function loadSavedGame(index) {
             try {
                 const savedGamesData = localStorage.getItem('savedGames');
@@ -1763,11 +1876,14 @@
                         hintsRemaining = gameData.hintsRemaining;
                         pencilMarks = gameData.pencilMarks || Array(9).fill().map(() => Array(9).fill().map(() => Array(9).fill(false)));
                         
-                        // NEW: Handle correct cells
+                        // Handle correct cells
                         correctCells = gameData.correctCells || Array(9).fill().map(() => Array(9).fill(false));
                         
-                        // NEW: Handle initial board for restart
+                        // Handle initial board for restart
                         initialBoard = gameData.initialBoard;
+                        
+                        // Handle completed numbers
+                        completedNumbers = gameData.completedNumbers || Array(10).fill(false);
                         
                         // Handle grid scale
                         if (gameData.gridScale) {
@@ -1797,7 +1913,7 @@
             return false;
         }
         
-        // ENHANCEMENT: Delete a saved game
+        // Delete a saved game
         function deleteSavedGame(index) {
             try {
                 const savedGamesData = localStorage.getItem('savedGames');
@@ -1825,7 +1941,7 @@
             return false;
         }
         
-        // ENHANCEMENT: Update saved games list in the modal
+        // Update saved games list in the modal
         function updateSavedGamesList() {
             const container = document.getElementById('saved-games-container');
             const noSavedGamesMsg = document.getElementById('no-saved-games');
@@ -1845,15 +1961,15 @@
                         // Add each saved game
                         savedGames.forEach((game, index) => {
                             const gameItem = document.createElement('div');
-                            gameItem.classList.add('bg-white', 'dark:bg-gray-700', 'p-3', 'rounded', 'flex', 'justify-between', 'items-center');
+                            gameItem.classList.add('bg-gray-700', 'p-3', 'rounded', 'flex', 'justify-between', 'items-center');
                             
                             const date = new Date(game.timestamp);
                             const dateFormatted = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
                             
                             const gameInfo = document.createElement('div');
                             gameInfo.innerHTML = `
-                                <div class="font-bold dark:text-white">${game.name}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">${dateFormatted}</div>
+                                <div class="font-bold text-white">${game.name}</div>
+                                <div class="text-xs text-gray-400">${dateFormatted}</div>
                             `;
                             
                             const buttonsContainer = document.createElement('div');
@@ -1893,7 +2009,7 @@
             }
         }
         
-        // ENHANCEMENT: Save statistics to localStorage
+        // Save statistics to localStorage
         function saveStats() {
             try {
                 localStorage.setItem('sudokuStats', JSON.stringify(stats));
@@ -1902,7 +2018,7 @@
             }
         }
         
-        // ENHANCEMENT: Load statistics from localStorage
+        // Load statistics from localStorage
         function loadStats() {
             try {
                 const savedStats = localStorage.getItem('sudokuStats');
@@ -1925,7 +2041,7 @@
             return false;
         }
         
-        // ENHANCEMENT: Clear all stored data
+        // Clear all stored data
         function clearAllData() {
             try {
                 localStorage.removeItem('currentGame');
@@ -1952,7 +2068,7 @@
             }
         }
         
-        // ENHANCEMENT: Save settings
+        // Save settings
         function saveSettings() {
             try {
                 const settings = {
@@ -1968,7 +2084,7 @@
             }
         }
         
-        // ENHANCEMENT: Load settings
+        // Load settings
         function loadSettings() {
             try {
                 const savedSettings = localStorage.getItem('sudokuSettings');
@@ -2003,7 +2119,7 @@
             return false;
         }
         
-        // ENHANCEMENT: Start auto-save
+        // Start auto-save
         function startAutoSave() {
             if (autoSaveInterval) {
                 clearInterval(autoSaveInterval);
@@ -2017,7 +2133,7 @@
             }
         }
         
-        // ENHANCEMENT: Stop auto-save
+        // Stop auto-save
         function stopAutoSave() {
             if (autoSaveInterval) {
                 clearInterval(autoSaveInterval);
@@ -2025,7 +2141,7 @@
             }
         }
         
-        // ENHANCEMENT: Show save notification
+        // Show save notification
         function showSaveNotification(message) {
             const notification = document.getElementById('save-notification');
             notification.textContent = message;
@@ -2036,7 +2152,7 @@
             }, 2000);
         }
         
-        // ENHANCEMENT: Set grid scale
+        // Set grid scale
         function setGridScale(scale) {
             // Limit scale between 60% and 150%
             gridScale = Math.max(60, Math.min(150, scale));
@@ -2066,6 +2182,7 @@
                 pencilMarks: pencilMarks,
                 correctCells: correctCells,
                 initialBoard: initialBoard,
+                completedNumbers: completedNumbers,
                 stats: stats
             };
             
@@ -2108,6 +2225,13 @@
                     initialBoard = puzzleData.initialBoard;
                 }
                 
+                // Handle completed numbers (optional in older saves)
+                if (puzzleData.completedNumbers) {
+                    completedNumbers = puzzleData.completedNumbers;
+                } else {
+                    completedNumbers = Array(10).fill(false);
+                }
+                
                 // Handle stats (optional in older saves)
                 if (puzzleData.stats) {
                     stats = puzzleData.stats;
@@ -2120,12 +2244,16 @@
                 
                 // Reset selected cell
                 if (selectedCell) {
-                    selectedCell.classList.remove('cell-selected', 'bg-yellow-100', 'dark:bg-gray-600');
+                    selectedCell.classList.remove('cell-selected', 'bg-gray-600');
                     selectedCell = null;
                 }
                 
                 // Clear highlights
                 clearHighlights();
+                
+                // Reset number highlight mode
+                isNumberHighlightMode = false;
+                highlightedNumber = null;
                 
                 // Save imported game
                 saveCurrentGame();
@@ -2205,7 +2333,7 @@
             document.getElementById('stats-modal').style.display = 'flex';
         }
         
-        // ENHANCEMENT: Show settings modal
+        // Show settings modal
         function showSettings() {
             // Update UI to match current settings
             document.getElementById('auto-save-toggle').checked = autoSaveEnabled;
@@ -2216,7 +2344,7 @@
             document.getElementById('settings-modal').style.display = 'flex';
         }
         
-        // ENHANCEMENT: Show saved games modal
+        // Show saved games modal
         function showSavedGames() {
             updateSavedGamesList();
             document.getElementById('saved-games-modal').style.display = 'flex';
@@ -2226,9 +2354,28 @@
         function setupEventListeners() {
             // Number buttons
             document.querySelectorAll('.number-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    if (!selectedCell) {
-                        showStatus("Select a cell first, Detective.", true);
+                button.addEventListener('click', function(e) {
+                    const num = parseInt(this.dataset.num);
+                    
+                    // Check if this number is completed
+                    if (completedNumbers[num]) {
+                        showStatus(`All ${num}'s are already correctly placed!`, false);
+                        return;
+                    }
+                    
+                    // Handle number highlighting mode
+                    if (!selectedCell || isNumberHighlightMode) {
+                        // If the same number is clicked again, exit highlight mode
+                        if (isNumberHighlightMode && highlightedNumber === num) {
+                            clearAllHighlights();
+                            isNumberHighlightMode = false;
+                            highlightedNumber = null;
+                        } else {
+                            // Enter highlight mode for this number
+                            highlightPlacementOptions(num);
+                            isNumberHighlightMode = true;
+                            highlightedNumber = num;
+                        }
                         return;
                     }
                     
@@ -2240,13 +2387,11 @@
                         return;
                     }
                     
-                    // NEW: Check if cell is correct and should be locked
+                    // Check if cell is correct and should be locked
                     if (correctCells[row][col]) {
                         showStatus("This cell is correct and locked! Try another cell.", true);
                         return;
                     }
-                    
-                    const num = parseInt(button.dataset.num);
                     
                     if (isPencilMode) {
                         // Toggle pencil mark for this number
@@ -2260,6 +2405,14 @@
             
             // Erase button
             document.getElementById('erase-btn').addEventListener('click', () => {
+                // Exit number highlight mode
+                if (isNumberHighlightMode) {
+                    clearAllHighlights();
+                    isNumberHighlightMode = false;
+                    highlightedNumber = null;
+                    return;
+                }
+                
                 if (!selectedCell) {
                     showStatus("Select a cell first, Detective.", true);
                     return;
@@ -2273,7 +2426,7 @@
                     return;
                 }
                 
-                // NEW: Check if cell is correct and should be locked
+                // Check if cell is correct and should be locked
                 if (correctCells[row][col]) {
                     showStatus("This cell is correct and locked! Try another cell.", true);
                     return;
@@ -2388,8 +2541,19 @@
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', showSettings);
             
-            // Saved games button
-            document.getElementById('saved-games-btn').addEventListener('click', showSavedGames);
+            // Saved games button - FIX: Ensure this event handler works reliably
+            const savedGamesBtn = document.getElementById('saved-games-btn');
+            
+            // Remove any existing event listeners (just in case)
+            const newSavedGamesBtn = savedGamesBtn.cloneNode(true);
+            savedGamesBtn.parentNode.replaceChild(newSavedGamesBtn, savedGamesBtn);
+            
+            // Add event listener with the click event
+            newSavedGamesBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showSavedGames();
+            });
             
             // Close share modal
             document.getElementById('close-share-modal').addEventListener('click', () => {
@@ -2471,8 +2635,17 @@
                 document.getElementById('saved-games-modal').style.display = 'none';
             });
             
-            // Save game button
-            document.getElementById('save-game-btn').addEventListener('click', () => {
+            // Save game button - FIX: Ensure this event handler works reliably
+            const saveGameBtn = document.getElementById('save-game-btn');
+            
+            // Remove any existing event listeners
+            const newSaveGameBtn = saveGameBtn.cloneNode(true);
+            saveGameBtn.parentNode.replaceChild(newSaveGameBtn, saveGameBtn);
+            
+            // Add event listener with the click event
+            newSaveGameBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 const gameName = document.getElementById('save-game-name').value || `Game ${new Date().toLocaleString()}`;
                 saveNamedGame(gameName);
                 updateSavedGamesList();
@@ -2481,7 +2654,7 @@
             // Import submit button
             document.getElementById('import-submit-btn').addEventListener('click', submitImportedPuzzle);
             
-            // ENHANCEMENT: Zoom controls
+            // Zoom controls
             document.getElementById('zoom-in').addEventListener('click', () => {
                 setGridScale(gridScale + 10);
             });
@@ -2530,8 +2703,25 @@
                 }
             });
             
+            // Click on board to exit number highlight mode
+            document.getElementById('sudoku-board').addEventListener('click', () => {
+                if (isNumberHighlightMode) {
+                    clearAllHighlights();
+                    isNumberHighlightMode = false;
+                    highlightedNumber = null;
+                }
+            });
+            
             // Keyboard controls
             document.addEventListener('keydown', e => {
+                // Exit number highlight mode with Escape key
+                if (e.key === 'Escape' && isNumberHighlightMode) {
+                    clearAllHighlights();
+                    isNumberHighlightMode = false;
+                    highlightedNumber = null;
+                    return;
+                }
+                
                 if (!selectedCell) return;
                 
                 const row = parseInt(selectedCell.dataset.row);
@@ -2539,11 +2729,18 @@
                 
                 if (initialCells[row][col]) return;
                 
-                // NEW: Check if cell is correct and locked
+                // Check if cell is correct and locked
                 if (correctCells[row][col] && !isPencilMode) return;
                 
                 if (e.key >= '1' && e.key <= '9') {
                     const num = parseInt(e.key);
+                    
+                    // Skip if number is completed
+                    if (completedNumbers[num] && !isPencilMode) {
+                        showStatus(`All ${num}'s are already correctly placed!`, false);
+                        return;
+                    }
+                    
                     if (isPencilMode) {
                         togglePencilMark(row, col, num);
                     } else {
