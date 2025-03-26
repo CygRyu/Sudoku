@@ -604,6 +604,16 @@
                 highlightedNumber = null;
             }
             
+            // Check if clicking on the already selected cell - deselect it
+            if (selectedCell === cell) {
+                // Deselect the cell
+                selectedCell.classList.remove('cell-selected', 'bg-gray-600');
+                selectedCell = null;
+                clearHighlights();
+                showStatus("Cell deselected", false);
+                return;
+            }
+            
             // Clear previous selection
             if (selectedCell) {
                 selectedCell.classList.remove('cell-selected', 'bg-gray-600');
@@ -2370,6 +2380,7 @@
                             clearAllHighlights();
                             isNumberHighlightMode = false;
                             highlightedNumber = null;
+                            showStatus("Number deselected", false);
                         } else {
                             // Enter highlight mode for this number
                             highlightPlacementOptions(num);
